@@ -227,11 +227,20 @@ function updateNodeCard(nodeId) {
   if (!card) return;
   const n = nodes[nodeId];
   if (!n) return;
-  // Re-render the card in place
-  const temp = document.createElement('div');
-  temp.innerHTML = buildNodeCard(n);
-  const newCard = temp.firstElementChild;
-  card.replaceWith(newCard);
+
+  // Update status dot
+  const dot = card.querySelector('.status-dot');
+  if (dot) {
+    dot.className = `status-dot ${n.connected ? 'online' : 'offline'}`;
+    dot.title = n.connected ? t('node.online') : t('node.offline');
+  }
+
+  // Update mini players in place
+  const st = n.state || {};
+  const playersDiv = card.querySelector('.node-card-players');
+  if (playersDiv) {
+    playersDiv.innerHTML = buildMiniPlayer(1, st.players?.[1] || {}) + buildMiniPlayer(2, st.players?.[2] || {});
+  }
 }
 
 // ── Node Selection (Detail View) ──
