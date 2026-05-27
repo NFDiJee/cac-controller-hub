@@ -298,9 +298,11 @@ function updatePlayerUI() {
     const modeText = t(PLAYER_MODES[mode] || 'mode.unknown');
     document.getElementById(prefix + 'Mode').textContent = modeText;
 
-    // Time
-    const time = p.time || p.trackTime || '';
-    document.getElementById(prefix + 'Time').textContent = formatTime(time);
+    // Time (track-relative time from player state)
+    const mins = p.trackTimeMinutes || p.timeMinutes || 0;
+    const secs = p.trackTimeSeconds || p.timeSeconds || 0;
+    const timeStr = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+    document.getElementById(prefix + 'Time').textContent = timeStr;
 
     // Track
     const track = p.track && p.track !== 'XX' ? p.track : '--';

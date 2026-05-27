@@ -83,11 +83,17 @@ export class NodeManager extends EventEmitter {
           conn.lastSeen = Date.now();
 
           if (msg.type === 'hubInit') {
+            // Remap player1/player2 keys to numeric 1/2 to match playerState events
+            const rawPlayers = msg.data.players || {};
+            const players = {};
+            if (rawPlayers.player1) players[1] = rawPlayers.player1;
+            if (rawPlayers.player2) players[2] = rawPlayers.player2;
             conn.state = {
               name: msg.data.name || node.name,
               room: msg.data.room || node.room,
               model: msg.data.model || node.model,
-              players: msg.data.players || {},
+              players,
+              playModes: rawPlayers.playModes || {},
               scanner: msg.data.scanner || {},
             };
             // Update node info in DB if provided by the node
@@ -173,7 +179,11 @@ export class NodeManager extends EventEmitter {
         const data = await resp.json();
         conn.lastSeen = Date.now();
         if (conn.state) {
-          conn.state.players = data.players || conn.state.players;
+          // Remap player1/player2 to numeric keys
+          const raw = data.players || {};
+          if (raw.player1) conn.state.players[1] = raw.player1;
+          if (raw.player2) conn.state.players[2] = raw.player2;
+          if (raw.playModes) conn.state.playModes = raw.playModes;
           conn.state.serialConnected = data.serialConnected;
         }
       }
