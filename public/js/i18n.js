@@ -6,6 +6,7 @@ const translations = {
     'nav.back': 'Zurueck',
     'nav.player': 'Player',
     'nav.library': 'Library',
+    'nav.favorites': 'Favoriten',
     'nav.playlists': 'Playlists',
     'nav.scanner': 'Scanner',
 
@@ -25,6 +26,11 @@ const translations = {
     'mode.gapless': 'Gapless',
     'mode.shuffle': 'Shuffle',
 
+    'shuffle.off': 'Aus',
+    'shuffle.cd': 'CD',
+    'shuffle.players': 'Beide Player',
+    'shuffle.all': 'Alle CDs',
+
     'mode.play': 'Play',
     'mode.pause': 'Pause',
     'mode.stop': 'Stop',
@@ -42,11 +48,20 @@ const translations = {
     'library.loadP2': 'Player 2 laden',
     'library.noCds': 'Keine CDs in der Library.',
 
+    'favorites.empty': 'Keine Favoriten vorhanden.',
+    'favorites.cds': 'CD-Favoriten',
+    'favorites.tracks': 'Track-Favoriten',
+
     'playlists.refresh': 'Aktualisieren',
     'playlists.play': 'Abspielen',
     'playlists.empty': 'Keine Playlists vorhanden.',
     'playlists.items': 'Eintraege',
 
+    'scanner.singleTitle': 'Einzelner Slot',
+    'scanner.rangeTitle': 'Bereich scannen',
+    'scanner.scanSlot': 'Scannen',
+    'scanner.brainz': 'MusicBrainz',
+    'scanner.brainzNoResults': 'Keine MusicBrainz-Ergebnisse gefunden.',
     'scanner.range': 'Bereich:',
     'scanner.start': 'Scan starten',
     'scanner.abort': 'Abbrechen',
@@ -56,6 +71,8 @@ const translations = {
 
     'settings.nodesTitle': 'Nodes verwalten',
     'settings.addNode': 'Node hinzufuegen',
+    'settings.editNode': 'Node bearbeiten',
+    'settings.editBtn': '&#9998;',
     'settings.nodeUrl': 'URL',
     'settings.nodeApiKey': 'API-Key',
     'settings.nodeName': 'Name',
@@ -69,6 +86,7 @@ const translations = {
     'settings.hubPort': 'Port',
     'settings.language': 'Sprache',
     'settings.save': 'Speichern',
+    'settings.cancel': 'Abbrechen',
     'settings.saved': 'Gespeichert!',
     'settings.deleteConfirm': 'Node wirklich loeschen?',
 
@@ -86,6 +104,7 @@ const translations = {
     'nav.back': 'Back',
     'nav.player': 'Player',
     'nav.library': 'Library',
+    'nav.favorites': 'Favorites',
     'nav.playlists': 'Playlists',
     'nav.scanner': 'Scanner',
 
@@ -105,6 +124,11 @@ const translations = {
     'mode.gapless': 'Gapless',
     'mode.shuffle': 'Shuffle',
 
+    'shuffle.off': 'Off',
+    'shuffle.cd': 'CD',
+    'shuffle.players': 'Both Players',
+    'shuffle.all': 'All CDs',
+
     'mode.play': 'Play',
     'mode.pause': 'Pause',
     'mode.stop': 'Stop',
@@ -122,11 +146,20 @@ const translations = {
     'library.loadP2': 'Load Player 2',
     'library.noCds': 'No CDs in library.',
 
+    'favorites.empty': 'No favorites yet.',
+    'favorites.cds': 'CD Favorites',
+    'favorites.tracks': 'Track Favorites',
+
     'playlists.refresh': 'Refresh',
     'playlists.play': 'Play',
     'playlists.empty': 'No playlists available.',
     'playlists.items': 'items',
 
+    'scanner.singleTitle': 'Single Slot',
+    'scanner.rangeTitle': 'Range Scan',
+    'scanner.scanSlot': 'Scan',
+    'scanner.brainz': 'MusicBrainz',
+    'scanner.brainzNoResults': 'No MusicBrainz results found.',
     'scanner.range': 'Range:',
     'scanner.start': 'Start Scan',
     'scanner.abort': 'Abort',
@@ -136,6 +169,8 @@ const translations = {
 
     'settings.nodesTitle': 'Manage Nodes',
     'settings.addNode': 'Add Node',
+    'settings.editNode': 'Edit Node',
+    'settings.editBtn': '&#9998;',
     'settings.nodeUrl': 'URL',
     'settings.nodeApiKey': 'API Key',
     'settings.nodeName': 'Name',
@@ -149,6 +184,7 @@ const translations = {
     'settings.hubPort': 'Port',
     'settings.language': 'Language',
     'settings.save': 'Save',
+    'settings.cancel': 'Cancel',
     'settings.saved': 'Saved!',
     'settings.deleteConfirm': 'Really delete this node?',
 

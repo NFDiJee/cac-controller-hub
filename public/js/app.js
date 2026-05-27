@@ -4,6 +4,8 @@ let ws = null;
 let nodes = {};          // nodeId -> { id, name, url, room, model, connected, state }
 let selectedNodeId = null;
 let nodeLibrary = {};    // nodeId -> [cd, ...]
+let nodeRatings = {};    // nodeId -> [{slot, track_number, rating}, ...]
+let nodeFavorites = {};  // nodeId -> [{slot, track_number}, ...]
 let currentCdSlot = null;
 
 const PLAYER_MODES = {
@@ -56,6 +58,7 @@ function initSubTabs() {
       sub.classList.add('active');
 
       if (btn.dataset.sub === 'library' && selectedNodeId) loadLibrary();
+      if (btn.dataset.sub === 'favorites' && selectedNodeId) renderFavorites();
       if (btn.dataset.sub === 'playlists' && selectedNodeId) loadPlaylists();
     });
   });
@@ -91,12 +94,10 @@ function connectWebSocket() {
 function handleWsMessage(msg) {
   switch (msg.type) {
     case 'init':
-      // Initial state: array of nodes with status
       for (const n of msg.nodes) {
         nodes[n.id] = n;
       }
       renderDashboard();
-      // Pre-load library for all connected nodes (for disc titles on dashboard)
       preloadAllLibraries();
       break;
 
@@ -147,16 +148,21 @@ function handleNodeEvent(nodeId, event) {
       break;
     case 'scanComplete':
       node.state.scanner = { scanning: false };
+      // Reload library after scan
+      if (selectedNodeId === nodeId) {
+        loadLibrary();
+        loadNodeRatings(nodeId);
+        loadNodeFavorites(nodeId);
+      }
       break;
     case 'playModeChange':
       node.state.playModes = event.data;
+      if (selectedNodeId === nodeId) updateShuffleUI(event.data);
       break;
   }
 
-  // Update dashboard card
   updateNodeCard(nodeId);
 
-  // Update detail view if this node is selected
   if (selectedNodeId === nodeId) {
     updatePlayerUI();
     if (event.type === 'scanProgress' || event.type === 'scanComplete') {
@@ -220,7 +226,6 @@ function buildMiniPlayer(pid, state, nodeId) {
   const disc = cd && cd.title ? esc(cd.title) : (discNum ? `Disc ${discNum}` : t('player.noDisc'));
   const track = state.track && state.track !== 'XX' ? `Tr ${state.track}` : '';
 
-  // Sync time ref so interpolation works immediately
   if (nodeId && state.mode) syncTimeRef(nodeId, pid, state);
   const timeLine = nodeId ? getTimeLineStr(nodeId, pid) : '';
   const coverUrl = cd && cd.cover_url && nodeId
@@ -249,14 +254,12 @@ function updateNodeCard(nodeId) {
   const n = nodes[nodeId];
   if (!n) return;
 
-  // Update status dot
   const dot = card.querySelector('.status-dot');
   if (dot) {
     dot.className = `status-dot ${n.connected ? 'online' : 'offline'}`;
     dot.title = n.connected ? t('node.online') : t('node.offline');
   }
 
-  // Update mini players in place
   const st = n.state || {};
   const playersDiv = card.querySelector('.node-card-players');
   if (playersDiv) {
@@ -288,7 +291,9 @@ function selectNode(nodeId) {
 
   updatePlayerUI();
   loadPlayModes();
-  loadLibrary(); // Pre-load for disc info
+  loadLibrary();
+  loadNodeRatings(nodeId);
+  loadNodeFavorites(nodeId);
 }
 
 function showDashboard() {
@@ -299,7 +304,6 @@ function showDashboard() {
 }
 
 // ── Time Interpolation (local 1s tick per player) ──
-// Key: "nodeId-playerId" → { trackSec, discSec, localMs, playing, lastPioneerTrack, lastPioneerDisc }
 const timeRefs = {};
 
 function getTimeRef(nodeId, pid) {
@@ -336,9 +340,7 @@ function getInterpolatedTime(nodeId, pid) {
   const ref = getTimeRef(nodeId, pid);
   if (ref.localMs <= 0) return '--:--';
   let trackSec = ref.trackSec;
-  if (ref.playing && ref.localMs > 0) {
-    trackSec += Math.floor((Date.now() - ref.localMs) / 1000);
-  }
+  if (ref.playing) trackSec += Math.floor((Date.now() - ref.localMs) / 1000);
   return fmtSec(trackSec);
 }
 
@@ -346,9 +348,7 @@ function getInterpolatedDiscTime(nodeId, pid) {
   const ref = getTimeRef(nodeId, pid);
   if (ref.localMs <= 0) return '--:--';
   let discSec = ref.discSec;
-  if (ref.playing && ref.localMs > 0) {
-    discSec += Math.floor((Date.now() - ref.localMs) / 1000);
-  }
+  if (ref.playing) discSec += Math.floor((Date.now() - ref.localMs) / 1000);
   return fmtSec(discSec);
 }
 
@@ -366,9 +366,7 @@ function getTimeLineStr(nodeId, pid) {
   return getInterpolatedTime(nodeId, pid) + ' | CD ' + getInterpolatedDiscTime(nodeId, pid) + ' / ' + getDiscTotal(nodeId, pid);
 }
 
-// Tick every second to update displayed time
 setInterval(() => {
-  // Update detail view
   if (selectedNodeId) {
     for (const pid of [1, 2]) {
       const el = document.getElementById(`p${pid}Time`);
@@ -377,7 +375,6 @@ setInterval(() => {
       if (dt) dt.textContent = 'CD ' + getInterpolatedDiscTime(selectedNodeId, pid) + ' / ' + getDiscTotal(selectedNodeId, pid);
     }
   }
-  // Update mini-player times on dashboard
   for (const nodeId of Object.keys(nodes)) {
     for (const pid of [1, 2]) {
       const el = document.getElementById(`miniTime-${nodeId}-${pid}`);
@@ -402,7 +399,7 @@ function updatePlayerUI() {
     const modeText = t(PLAYER_MODES[mode] || 'mode.unknown');
     document.getElementById(prefix + 'Mode').textContent = modeText;
 
-    // Time (interpolated locally)
+    // Time
     syncTimeRef(selectedNodeId, pid, p);
     document.getElementById(prefix + 'Time').textContent = getInterpolatedTime(selectedNodeId, pid);
     document.getElementById(prefix + 'DiscTime').textContent =
@@ -433,6 +430,22 @@ function updatePlayerUI() {
       noCover.style.display = 'flex';
     }
 
+    // Stars + Favorite for this CD
+    const starsEl = document.getElementById(prefix + 'Stars');
+    const favEl = document.getElementById(prefix + 'Fav');
+    if (disc) {
+      const cdRating = getRating(selectedNodeId, disc, 0);
+      starsEl.innerHTML = starsHtml(cdRating, (r) => `rateItem(${disc}, 0, ${r})`);
+      const isFav = isFavorite(selectedNodeId, disc, 0);
+      favEl.innerHTML = isFav ? '&#9829;' : '&#9825;';
+      favEl.className = 'btn-icon btn-fav' + (isFav ? ' active' : '');
+      starsEl.style.display = '';
+      favEl.style.display = '';
+    } else {
+      starsEl.innerHTML = '';
+      favEl.style.display = 'none';
+    }
+
     // Track list
     renderTrackList(pid, cd, parseInt(track) || 0);
 
@@ -448,22 +461,20 @@ function renderTrackList(pid, cd, activeTrack) {
     el.innerHTML = '';
     return;
   }
-  el.innerHTML = cd.tracks.map(t => `
-    <div class="track-row ${t.track_number === activeTrack ? 'active' : ''}"
-         onclick="playTrack(${pid}, ${cd.slot}, ${t.track_number})">
-      <span class="track-num">${t.track_number}</span>
-      <span class="track-name">${esc(t.title || 'Track ' + t.track_number)}</span>
-      <span class="track-dur">${formatSeconds(t.duration_seconds)}</span>
-    </div>`).join('');
-}
-
-function formatTime(time) {
-  if (!time || time === 'XXXX') return '00:00';
-  if (typeof time === 'string' && time.length === 4) {
-    return time.slice(0, 2) + ':' + time.slice(2);
-  }
-  if (typeof time === 'number') return formatSeconds(time);
-  return time;
+  el.innerHTML = cd.tracks.map(tr => {
+    const rating = getRating(selectedNodeId, cd.slot, tr.track_number);
+    const isFav = isFavorite(selectedNodeId, cd.slot, tr.track_number);
+    return `
+    <div class="track-row ${tr.track_number === activeTrack ? 'active' : ''}">
+      <span class="track-num" onclick="playTrack(${pid}, ${cd.slot}, ${tr.track_number})">${tr.track_number}</span>
+      <span class="track-name" onclick="playTrack(${pid}, ${cd.slot}, ${tr.track_number})">${esc(tr.title || 'Track ' + tr.track_number)}</span>
+      <span class="track-stars-sm">${starsHtmlSm(rating, (r) => `rateItem(${cd.slot}, ${tr.track_number}, ${r})`)}</span>
+      <button class="btn-icon btn-fav-sm${isFav ? ' active' : ''}" onclick="toggleFavItem(${cd.slot}, ${tr.track_number})">
+        ${isFav ? '&#9829;' : '&#9825;'}
+      </button>
+      <span class="track-dur">${formatSeconds(tr.duration_seconds)}</span>
+    </div>`;
+  }).join('');
 }
 
 function formatSeconds(sec) {
@@ -471,6 +482,155 @@ function formatSeconds(sec) {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return m + ':' + String(s).padStart(2, '0');
+}
+
+// ── Ratings ──
+
+async function loadNodeRatings(nodeId) {
+  try {
+    const resp = await fetch(`/api/nodes/${nodeId}/proxy/ratings`);
+    if (!resp.ok) return;
+    nodeRatings[nodeId] = await resp.json();
+  } catch {
+    nodeRatings[nodeId] = [];
+  }
+}
+
+function getRating(nodeId, slot, trackNumber) {
+  const ratings = nodeRatings[nodeId] || [];
+  const r = ratings.find(r => r.slot === slot && r.track_number === trackNumber);
+  return r ? r.rating : 0;
+}
+
+async function rateItem(slot, trackNumber, rating) {
+  if (!selectedNodeId) return;
+  const current = getRating(selectedNodeId, slot, trackNumber);
+  const newRating = current === rating ? 0 : rating;
+  try {
+    await proxyPost('ratings', { slot, track: trackNumber, rating: newRating });
+    await loadNodeRatings(selectedNodeId);
+    updatePlayerUI();
+    if (currentCdSlot === slot) refreshCdModal();
+  } catch {}
+}
+
+function starsHtml(rating, onClickFn) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    const filled = i <= rating;
+    html += `<span class="star ${filled ? 'filled' : ''}" onclick="${onClickFn(i)}">${filled ? '&#9733;' : '&#9734;'}</span>`;
+  }
+  return html;
+}
+
+function starsHtmlSm(rating, onClickFn) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    const filled = i <= rating;
+    html += `<span class="star-sm ${filled ? 'filled' : ''}" onclick="event.stopPropagation();${onClickFn(i)}">${filled ? '&#9733;' : '&#9734;'}</span>`;
+  }
+  return html;
+}
+
+// ── Favorites ──
+
+async function loadNodeFavorites(nodeId) {
+  try {
+    const resp = await fetch(`/api/nodes/${nodeId}/proxy/favorites`);
+    if (!resp.ok) return;
+    nodeFavorites[nodeId] = await resp.json();
+  } catch {
+    nodeFavorites[nodeId] = [];
+  }
+}
+
+function isFavorite(nodeId, slot, trackNumber) {
+  const favs = nodeFavorites[nodeId] || [];
+  return favs.some(f => f.slot === slot && (f.track_number || 0) === trackNumber);
+}
+
+async function toggleFavItem(slot, trackNumber) {
+  if (!selectedNodeId) return;
+  try {
+    await proxyPost('favorites/toggle', { slot, track: trackNumber });
+    await loadNodeFavorites(selectedNodeId);
+    updatePlayerUI();
+    if (currentCdSlot === slot) refreshCdModal();
+  } catch {}
+}
+
+async function togglePlayerFav(pid) {
+  if (!selectedNodeId) return;
+  const node = nodes[selectedNodeId];
+  const p = node?.state?.players?.[pid] || {};
+  const disc = p.disc && p.disc !== 'XXX' ? parseInt(p.disc) : null;
+  if (!disc) return;
+  await toggleFavItem(disc, 0);
+}
+
+async function toggleModalCdFav() {
+  if (!currentCdSlot) return;
+  await toggleFavItem(currentCdSlot, 0);
+}
+
+function renderFavorites() {
+  const el = document.getElementById('favoritesList');
+  const favs = nodeFavorites[selectedNodeId] || [];
+
+  if (favs.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:30px">${t('favorites.empty')}</div>`;
+    return;
+  }
+
+  const lib = nodeLibrary[selectedNodeId] || [];
+
+  // Group: CD favorites (track_number = 0) and track favorites
+  const cdFavs = favs.filter(f => !f.track_number || f.track_number === 0);
+  const trackFavs = favs.filter(f => f.track_number && f.track_number > 0);
+
+  let html = '';
+
+  if (cdFavs.length > 0) {
+    html += `<div class="card-title">${t('favorites.cds')}</div>`;
+    html += cdFavs.map(f => {
+      const cd = lib.find(c => c.slot === f.slot);
+      const title = cd?.title || `CD ${f.slot}`;
+      const artist = cd?.artist || '';
+      const coverUrl = cd?.cover_url
+        ? `/api/nodes/${selectedNodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}`
+        : '';
+      return `
+        <div class="fav-item" onclick="openCdModal(${f.slot})">
+          ${coverUrl ? `<img class="fav-cover" src="${coverUrl}" alt="">` : `<div class="fav-cover fav-no-cover">${f.slot}</div>`}
+          <div class="fav-meta">
+            <div class="fav-title">${esc(title)}</div>
+            <div class="fav-artist">${esc(artist)}</div>
+            <div class="fav-slot">Slot ${f.slot}</div>
+          </div>
+          <button class="btn-icon btn-fav active" onclick="event.stopPropagation();toggleFavItem(${f.slot}, 0)">&#9829;</button>
+        </div>`;
+    }).join('');
+  }
+
+  if (trackFavs.length > 0) {
+    html += `<div class="card-title" style="margin-top:16px">${t('favorites.tracks')}</div>`;
+    html += trackFavs.map(f => {
+      const cd = lib.find(c => c.slot === f.slot);
+      const tr = cd?.tracks?.find(t => t.track_number === f.track_number);
+      const title = tr?.title || `Track ${f.track_number}`;
+      const cdTitle = cd?.title || `CD ${f.slot}`;
+      return `
+        <div class="fav-item" onclick="playTrack(1, ${f.slot}, ${f.track_number})">
+          <div class="fav-meta">
+            <div class="fav-title">${esc(title)}</div>
+            <div class="fav-artist">${esc(cdTitle)} &middot; Slot ${f.slot} &middot; Track ${f.track_number}</div>
+          </div>
+          <button class="btn-icon btn-fav active" onclick="event.stopPropagation();toggleFavItem(${f.slot}, ${f.track_number})">&#9829;</button>
+        </div>`;
+    }).join('');
+  }
+
+  el.innerHTML = html;
 }
 
 // ── Player Commands ──
@@ -504,7 +664,7 @@ async function loadPlayModes() {
     const data = await proxyGet('playmodes');
     document.getElementById('modeContinuous').checked = !!data.continuous;
     document.getElementById('modeGapless').checked = !!data.gapless;
-    document.getElementById('modeShuffle').checked = !!data.shuffle;
+    updateShuffleUI(data);
   } catch {}
 }
 
@@ -513,9 +673,17 @@ async function setPlayMode(mode, value) {
   await proxyPut('playmodes', { [mode]: value });
 }
 
-async function toggleShuffle() {
-  const checked = document.getElementById('modeShuffle').checked;
-  await proxyPut('playmodes', { shuffle: checked ? 'cd' : false });
+async function setShuffle(mode) {
+  if (!selectedNodeId) return;
+  const data = await proxyPut('playmodes', { shuffle: mode === 'off' ? false : mode });
+  updateShuffleUI(data);
+}
+
+function updateShuffleUI(data) {
+  const current = data?.shuffle || 'off';
+  document.querySelectorAll('.shuffle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.shuffle === (current || 'off'));
+  });
 }
 
 // ── Library ──
@@ -544,7 +712,6 @@ async function loadLibrary() {
     const data = await proxyGet('library');
     nodeLibrary[selectedNodeId] = data;
     renderLibrary();
-    // Re-update player UI with disc info now available
     updatePlayerUI();
   } catch {
     nodeLibrary[selectedNodeId] = [];
@@ -572,6 +739,8 @@ function renderLibrary() {
     const coverSrc = cd.cover_url
       ? `/api/nodes/${selectedNodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}`
       : '';
+    const rating = getRating(selectedNodeId, cd.slot, 0);
+    const isFav = isFavorite(selectedNodeId, cd.slot, 0);
     return `
       <div class="lib-card" onclick="openCdModal(${cd.slot})">
         ${coverSrc
@@ -580,7 +749,10 @@ function renderLibrary() {
         <div class="lib-card-meta">
           <div class="lib-card-title">${esc(cd.title || 'CD ' + cd.slot)}</div>
           <div class="lib-card-artist">${esc(cd.artist || '')}</div>
-          <div class="lib-card-info">Slot ${cd.slot} · ${cd.total_tracks || '?'} Tracks</div>
+          <div class="lib-card-info">Slot ${cd.slot} · ${cd.total_tracks || '?'} Tracks
+            ${rating ? ' · ' + '&#9733;'.repeat(rating) : ''}
+            ${isFav ? ' &#9829;' : ''}
+          </div>
         </div>
       </div>`;
   }).join('');
@@ -598,6 +770,16 @@ function openCdModal(slot) {
   if (!cd) return;
 
   currentCdSlot = slot;
+  refreshCdModal();
+  document.getElementById('cdModal').style.display = 'flex';
+}
+
+function refreshCdModal() {
+  if (!currentCdSlot || !selectedNodeId) return;
+  const lib = nodeLibrary[selectedNodeId] || [];
+  const cd = lib.find(c => c.slot === currentCdSlot);
+  if (!cd) return;
+  const slot = currentCdSlot;
 
   document.getElementById('cdModalTitle').textContent = cd.title || 'CD ' + slot;
   document.getElementById('cdModalArtist').textContent = cd.artist || '';
@@ -613,19 +795,34 @@ function openCdModal(slot) {
     cover.style.display = 'none';
   }
 
+  // CD-level rating + favorite
+  const cdRating = getRating(selectedNodeId, slot, 0);
+  document.getElementById('cdModalStars').innerHTML = starsHtml(cdRating, (r) => `rateItem(${slot}, 0, ${r})`);
+  const cdFav = isFavorite(selectedNodeId, slot, 0);
+  const favBtn = document.getElementById('cdModalFav');
+  favBtn.innerHTML = cdFav ? '&#9829;' : '&#9825;';
+  favBtn.className = 'btn-icon btn-fav' + (cdFav ? ' active' : '');
+
+  // Tracks with stars + favorites
   const tracksEl = document.getElementById('cdModalTracks');
   if (cd.tracks && cd.tracks.length) {
-    tracksEl.innerHTML = cd.tracks.map(t => `
-      <div class="track-row" onclick="loadCdTrack(${slot}, ${t.track_number})">
-        <span class="track-num">${t.track_number}</span>
-        <span class="track-name">${esc(t.title || 'Track ' + t.track_number)}</span>
-        <span class="track-dur">${formatSeconds(t.duration_seconds)}</span>
-      </div>`).join('');
+    tracksEl.innerHTML = cd.tracks.map(tr => {
+      const rating = getRating(selectedNodeId, slot, tr.track_number);
+      const isFav = isFavorite(selectedNodeId, slot, tr.track_number);
+      return `
+      <div class="track-row" onclick="loadCdTrack(${slot}, ${tr.track_number})">
+        <span class="track-num">${tr.track_number}</span>
+        <span class="track-name">${esc(tr.title || 'Track ' + tr.track_number)}</span>
+        <span class="track-stars-sm">${starsHtmlSm(rating, (r) => `rateItem(${slot}, ${tr.track_number}, ${r})`)}</span>
+        <button class="btn-icon btn-fav-sm${isFav ? ' active' : ''}" onclick="event.stopPropagation();toggleFavItem(${slot}, ${tr.track_number})">
+          ${isFav ? '&#9829;' : '&#9825;'}
+        </button>
+        <span class="track-dur">${formatSeconds(tr.duration_seconds)}</span>
+      </div>`;
+    }).join('');
   } else {
     tracksEl.innerHTML = '<div style="color:var(--text-dim);padding:8px">No track data</div>';
   }
-
-  document.getElementById('cdModal').style.display = 'flex';
 }
 
 function closeCdModal() {
@@ -677,6 +874,23 @@ async function playPlaylist(id) {
 
 // ── Scanner ──
 
+async function scanSingle() {
+  if (!selectedNodeId) return;
+  const slot = parseInt(document.getElementById('scanSlot').value) || 1;
+  try {
+    await proxyPost('scanner/scan', { slot });
+    document.getElementById('scanProgress').style.display = 'block';
+    document.getElementById('scanText').textContent = `${t('scanner.scanning')} ${slot}...`;
+    document.getElementById('scanFill').style.width = '50%';
+    // Reload after a delay (single scan is synchronous)
+    setTimeout(async () => {
+      await loadLibrary();
+      await loadNodeRatings(selectedNodeId);
+      document.getElementById('scanProgress').style.display = 'none';
+    }, 2000);
+  } catch {}
+}
+
 async function startScan() {
   if (!selectedNodeId) return;
   const start = parseInt(document.getElementById('scanStart').value) || 1;
@@ -705,6 +919,71 @@ function updateScannerUI() {
   document.getElementById('scanFill').style.width = pct + '%';
   document.getElementById('scanText').textContent =
     `${t('scanner.scanning')} ${scanner.currentSlot || '?'} (${scanner.current || 0}/${scanner.total || '?'})`;
+}
+
+// ── MusicBrainz ──
+
+async function lookupBrainz() {
+  if (!selectedNodeId) return;
+  const slot = parseInt(document.getElementById('scanSlot').value) || 1;
+
+  // Get CD info for search
+  const lib = nodeLibrary[selectedNodeId] || [];
+  const cd = lib.find(c => c.slot === slot);
+  const query = cd ? `${cd.artist || ''} ${cd.title || ''}`.trim() : `Slot ${slot}`;
+
+  if (!query || query === `Slot ${slot}`) {
+    // Try searching by disc_id
+    try {
+      const cdData = await proxyGet(`library/${slot}`);
+      if (cdData?.disc_id) {
+        const results = await proxyGet(`musicbrainz/search?q=${encodeURIComponent(cdData.disc_id)}`);
+        showBrainzResults(slot, results);
+        return;
+      }
+    } catch {}
+  }
+
+  try {
+    const results = await proxyGet(`musicbrainz/search?q=${encodeURIComponent(query)}`);
+    showBrainzResults(slot, results);
+  } catch (err) {
+    alert('MusicBrainz: ' + err.message);
+  }
+}
+
+function showBrainzResults(slot, results) {
+  const body = document.getElementById('brainzModalBody');
+
+  if (!results || results.length === 0) {
+    body.innerHTML = `<div style="padding:16px;color:var(--text-dim)">${t('scanner.brainzNoResults')}</div>`;
+    document.getElementById('brainzModal').style.display = 'flex';
+    return;
+  }
+
+  body.innerHTML = results.map(r => `
+    <div class="brainz-item" onclick="applyBrainz(${slot}, '${esc(r.id || r.releaseId || '')}')">
+      <div class="brainz-title">${esc(r.title || '')}</div>
+      <div class="brainz-artist">${esc(r.artist || r['artist-credit'] || '')}</div>
+      <div class="brainz-info">${esc(r.date || r.year || '')} ${r.country ? '· ' + esc(r.country) : ''} ${r.label ? '· ' + esc(r.label) : ''}</div>
+    </div>`).join('');
+
+  document.getElementById('brainzModal').style.display = 'flex';
+}
+
+async function applyBrainz(slot, releaseId) {
+  if (!selectedNodeId || !releaseId) return;
+  try {
+    await proxyPost(`musicbrainz/apply/${slot}`, { releaseId });
+    closeBrainzModal();
+    await loadLibrary();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+function closeBrainzModal() {
+  document.getElementById('brainzModal').style.display = 'none';
 }
 
 // ── Settings ──
@@ -749,9 +1028,49 @@ function renderNodeList() {
         <div class="node-list-url">${esc(n.url || '')} ${n.room ? '· ' + esc(n.room) : ''}</div>
       </div>
       <div class="node-list-actions">
+        <button class="btn btn-dim btn-sm" onclick="openEditNodeModal(${n.id})" data-i18n="settings.editBtn">&#9998;</button>
         <button class="btn btn-danger btn-sm" onclick="deleteNode(${n.id})">&times;</button>
       </div>
     </div>`).join('');
+}
+
+function openEditNodeModal(nodeId) {
+  const node = nodes[nodeId];
+  if (!node) return;
+  document.getElementById('editNodeId').value = nodeId;
+  document.getElementById('editNodeName').value = node.name || '';
+  document.getElementById('editNodeUrl').value = node.url || '';
+  document.getElementById('editNodeApiKey').value = node.api_key || '';
+  document.getElementById('editNodeRoom').value = node.room || '';
+  document.getElementById('editNodeModal').style.display = 'flex';
+}
+
+function closeEditNodeModal() {
+  document.getElementById('editNodeModal').style.display = 'none';
+}
+
+async function saveNodeEdit() {
+  const nodeId = parseInt(document.getElementById('editNodeId').value);
+  const data = {
+    name: document.getElementById('editNodeName').value.trim(),
+    url: document.getElementById('editNodeUrl').value.trim(),
+    api_key: document.getElementById('editNodeApiKey').value.trim(),
+    room: document.getElementById('editNodeRoom').value.trim(),
+  };
+  try {
+    const resp = await fetch(`/api/nodes/${nodeId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const updated = await resp.json();
+    if (nodes[nodeId]) {
+      nodes[nodeId] = { ...nodes[nodeId], ...updated };
+    }
+    closeEditNodeModal();
+    renderNodeList();
+    renderDashboard();
+  } catch {}
 }
 
 async function testNodeConnection() {
@@ -775,7 +1094,6 @@ async function testNodeConnection() {
     if (data.ok) {
       el.className = 'test-result success';
       el.textContent = `${t('test.success')} ${data.data?.name || ''} (${data.data?.model || ''})`;
-      // Auto-fill name and room if empty
       if (!document.getElementById('addNodeName').value && data.data?.name) {
         document.getElementById('addNodeName').value = data.data.name;
       }
@@ -809,7 +1127,6 @@ async function addNode() {
     const node = await resp.json();
     nodes[node.id] = { ...node, connected: false, state: null };
 
-    // Clear form
     document.getElementById('addNodeUrl').value = '';
     document.getElementById('addNodeApiKey').value = '';
     document.getElementById('addNodeName').value = '';
