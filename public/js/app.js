@@ -1111,7 +1111,7 @@ function renderNodeList() {
         <div class="node-list-url">${esc(n.url || '')} ${n.room ? '· ' + esc(n.room) : ''}</div>
       </div>
       <div class="node-list-actions">
-        <button class="btn btn-dim btn-sm" onclick="openEditNodeModal(${n.id})" data-i18n="settings.editBtn">&#9998;</button>
+        <button class="btn btn-dim btn-sm" onclick="openEditNodeModal(${n.id})">&#9998;</button>
         <button class="btn btn-danger btn-sm" onclick="deleteNode(${n.id})">&times;</button>
       </div>
     </div>`).join('');

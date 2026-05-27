@@ -52,7 +52,6 @@
       <button class="sub-nav-btn" data-sub="favorites" data-i18n="nav.favorites">Favoriten</button>
       <button class="sub-nav-btn" data-sub="ratings" data-i18n="nav.ratings">Bewertungen</button>
       <button class="sub-nav-btn" data-sub="playlists" data-i18n="nav.playlists">Playlists</button>
-      <button class="sub-nav-btn" data-sub="scanner" data-i18n="nav.scanner">Scanner</button>
     </div>
 
     <!-- Player Sub-View -->
@@ -193,36 +192,6 @@
       <div id="playlistList" class="playlist-list"></div>
     </div>
 
-    <!-- Scanner Sub-View -->
-    <div id="sub-scanner" class="sub-content" style="display:none">
-      <div class="scanner-controls">
-        <div class="scan-section">
-          <div class="card-title" data-i18n="scanner.singleTitle">Einzelner Slot</div>
-          <div class="scan-row">
-            <label>Slot:</label>
-            <input type="number" id="scanSlot" class="form-input scan-input" value="1" min="1" max="300">
-            <button class="btn btn-accent" onclick="scanSingle()" data-i18n="scanner.scanSlot">Scannen</button>
-            <button class="btn btn-dim" onclick="lookupBrainz()" data-i18n="scanner.brainz">MusicBrainz</button>
-          </div>
-          <div id="brainzResult" class="brainz-result" style="display:none"></div>
-        </div>
-        <div class="scan-section">
-          <div class="card-title" data-i18n="scanner.rangeTitle">Bereich scannen</div>
-          <div class="scan-row">
-            <label data-i18n="scanner.range">Bereich:</label>
-            <input type="number" id="scanStart" class="form-input scan-input" value="1" min="1">
-            <span>&ndash;</span>
-            <input type="number" id="scanEnd" class="form-input scan-input" value="300" min="1">
-            <button class="btn btn-accent" onclick="startScan()" data-i18n="scanner.start">Scan starten</button>
-            <button class="btn btn-dim" onclick="abortScan()" data-i18n="scanner.abort">Abbrechen</button>
-          </div>
-        </div>
-        <div class="scan-progress" id="scanProgress" style="display:none">
-          <div class="progress-bar"><div class="progress-fill" id="scanFill"></div></div>
-          <div class="progress-text" id="scanText"></div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 

@@ -96,17 +96,13 @@ export class NodeManager extends EventEmitter {
               playModes: rawPlayers.playModes || {},
               scanner: msg.data.scanner || {},
             };
-            // Update node info in DB if provided by the node
-            if (msg.data.name && msg.data.name !== node.name) {
-              db.updateNode(node.id, { name: msg.data.name });
-              conn.node = db.getNode(node.id);
-            }
-            if (msg.data.room && msg.data.room !== node.room) {
-              db.updateNode(node.id, { room: msg.data.room });
-              conn.node = db.getNode(node.id);
-            }
-            if (msg.data.model) {
-              db.updateNode(node.id, { model: msg.data.model });
+            // Only set name/room from node if hub has no value yet (don't overwrite user edits)
+            const updates = {};
+            if (msg.data.name && !node.name) updates.name = msg.data.name;
+            if (msg.data.room && !node.room) updates.room = msg.data.room;
+            if (msg.data.model) updates.model = msg.data.model;
+            if (Object.keys(updates).length > 0) {
+              db.updateNode(node.id, updates);
               conn.node = db.getNode(node.id);
             }
             this.emit('nodeState', node.id, conn.state);

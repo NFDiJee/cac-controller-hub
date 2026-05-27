@@ -5,10 +5,9 @@ const translations = {
     'nav.settings': 'Einstellungen',
     'nav.back': 'Zurueck',
     'nav.player': 'Player',
-    'nav.library': 'Library',
+    'nav.library': 'CD Bibliothek',
     'nav.favorites': 'Favoriten',
     'nav.playlists': 'Playlists',
-    'nav.scanner': 'Scanner',
 
     'dashboard.empty': 'Keine Nodes konfiguriert. Fuege Nodes in den Einstellungen hinzu.',
 
@@ -46,7 +45,7 @@ const translations = {
     'library.search': 'Suchen...',
     'library.loadP1': 'Player 1 laden',
     'library.loadP2': 'Player 2 laden',
-    'library.noCds': 'Keine CDs in der Library.',
+    'library.noCds': 'Keine CDs in der Bibliothek.',
 
     'favorites.empty': 'Keine Favoriten vorhanden.',
     'favorites.cds': 'CD-Favoriten',
@@ -77,7 +76,6 @@ const translations = {
     'settings.nodesTitle': 'Nodes verwalten',
     'settings.addNode': 'Node hinzufuegen',
     'settings.editNode': 'Node bearbeiten',
-    'settings.editBtn': '&#9998;',
     'settings.nodeUrl': 'URL',
     'settings.nodeApiKey': 'API-Key',
     'settings.nodeName': 'Name',
@@ -111,8 +109,6 @@ const translations = {
     'nav.library': 'Library',
     'nav.favorites': 'Favorites',
     'nav.playlists': 'Playlists',
-    'nav.scanner': 'Scanner',
-
     'dashboard.empty': 'No nodes configured. Add nodes in Settings.',
 
     'node.openUI': 'Web Interface',
@@ -180,7 +176,6 @@ const translations = {
     'settings.nodesTitle': 'Manage Nodes',
     'settings.addNode': 'Add Node',
     'settings.editNode': 'Edit Node',
-    'settings.editBtn': '&#9998;',
     'settings.nodeUrl': 'URL',
     'settings.nodeApiKey': 'API Key',
     'settings.nodeName': 'Name',
