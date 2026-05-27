@@ -140,6 +140,7 @@ function handleNodeEvent(nodeId, event) {
     case 'playerState':
       if (!node.state.players) node.state.players = {};
       node.state.players[event.playerId] = event.data;
+      syncTimeRef(nodeId, event.playerId, event.data);
       break;
     case 'scanProgress':
       node.state.scanner = event.data;
@@ -282,6 +283,56 @@ function showDashboard() {
   renderDashboard();
 }
 
+// ── Time Interpolation (local 1s tick per player) ──
+// Key: "nodeId-playerId" → { trackSec, discSec, localMs, playing, lastPioneerTrack, lastPioneerDisc }
+const timeRefs = {};
+
+function getTimeRef(nodeId, pid) {
+  const key = nodeId + '-' + pid;
+  if (!timeRefs[key]) {
+    timeRefs[key] = { trackSec: 0, discSec: 0, localMs: 0, playing: false,
+                      lastPioneerTrack: -1, lastPioneerDisc: -1 };
+  }
+  return timeRefs[key];
+}
+
+function syncTimeRef(nodeId, pid, state) {
+  const ref = getTimeRef(nodeId, pid);
+  const newPlaying = state.mode === 'P04';
+  const pioneerDisc = (state.timeMinutes || 0) * 60 + (state.timeSeconds || 0);
+  const pioneerTrack = (state.trackTimeMinutes || 0) * 60 + (state.trackTimeSeconds || 0);
+
+  if (pioneerDisc !== ref.lastPioneerDisc || pioneerTrack !== ref.lastPioneerTrack
+      || newPlaying !== ref.playing) {
+    ref.lastPioneerDisc = pioneerDisc;
+    ref.lastPioneerTrack = pioneerTrack;
+    ref.trackSec = pioneerTrack;
+    ref.discSec = pioneerDisc;
+    ref.localMs = Date.now();
+  }
+  ref.playing = newPlaying;
+}
+
+function getInterpolatedTime(nodeId, pid) {
+  const ref = getTimeRef(nodeId, pid);
+  let trackSec = ref.trackSec;
+  if (ref.playing && ref.localMs > 0) {
+    trackSec += Math.floor((Date.now() - ref.localMs) / 1000);
+  }
+  return ref.localMs > 0
+    ? String(Math.floor(trackSec / 60)).padStart(2, '0') + ':' + String(trackSec % 60).padStart(2, '0')
+    : '--:--';
+}
+
+// Tick every second to update displayed time
+setInterval(() => {
+  if (!selectedNodeId) return;
+  for (const pid of [1, 2]) {
+    const el = document.getElementById(`p${pid}Time`);
+    if (el) el.textContent = getInterpolatedTime(selectedNodeId, pid);
+  }
+}, 1000);
+
 // ── Player UI ──
 
 function updatePlayerUI() {
@@ -298,11 +349,9 @@ function updatePlayerUI() {
     const modeText = t(PLAYER_MODES[mode] || 'mode.unknown');
     document.getElementById(prefix + 'Mode').textContent = modeText;
 
-    // Time (track-relative time from player state)
-    const mins = p.trackTimeMinutes || p.timeMinutes || 0;
-    const secs = p.trackTimeSeconds || p.timeSeconds || 0;
-    const timeStr = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-    document.getElementById(prefix + 'Time').textContent = timeStr;
+    // Time (interpolated locally)
+    syncTimeRef(selectedNodeId, pid, p);
+    document.getElementById(prefix + 'Time').textContent = getInterpolatedTime(selectedNodeId, pid);
 
     // Track
     const track = p.track && p.track !== 'XX' ? p.track : '--';
