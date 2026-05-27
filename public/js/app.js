@@ -220,11 +220,16 @@ function buildMiniPlayer(pid, state, nodeId) {
   const disc = cd && cd.title ? esc(cd.title) : (discNum ? `Disc ${discNum}` : t('player.noDisc'));
   const track = state.track && state.track !== 'XX' ? `Tr ${state.track}` : '';
 
+  // Sync time ref so interpolation works immediately
+  if (nodeId && state.mode) syncTimeRef(nodeId, pid, state);
+  const timeLine = nodeId ? getTimeLineStr(nodeId, pid) : '';
+
   return `
     <div class="mini-player">
       <div class="mini-player-label">Player ${pid}</div>
       <div class="mini-player-mode ${modeClass}">${modeLabel}</div>
       <div class="mini-player-disc">${disc} ${track}</div>
+      <div class="mini-player-time" id="miniTime-${nodeId}-${pid}">${timeLine}</div>
     </div>`;
 }
 
@@ -313,23 +318,59 @@ function syncTimeRef(nodeId, pid, state) {
   ref.playing = newPlaying;
 }
 
+function fmtSec(s) {
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+
 function getInterpolatedTime(nodeId, pid) {
   const ref = getTimeRef(nodeId, pid);
+  if (ref.localMs <= 0) return '--:--';
   let trackSec = ref.trackSec;
   if (ref.playing && ref.localMs > 0) {
     trackSec += Math.floor((Date.now() - ref.localMs) / 1000);
   }
-  return ref.localMs > 0
-    ? String(Math.floor(trackSec / 60)).padStart(2, '0') + ':' + String(trackSec % 60).padStart(2, '0')
-    : '--:--';
+  return fmtSec(trackSec);
+}
+
+function getInterpolatedDiscTime(nodeId, pid) {
+  const ref = getTimeRef(nodeId, pid);
+  if (ref.localMs <= 0) return '--:--';
+  let discSec = ref.discSec;
+  if (ref.playing && ref.localMs > 0) {
+    discSec += Math.floor((Date.now() - ref.localMs) / 1000);
+  }
+  return fmtSec(discSec);
+}
+
+function getDiscTotal(nodeId, pid) {
+  const node = nodes[nodeId];
+  const state = node?.state?.players?.[pid] || {};
+  const discNum = state.disc && state.disc !== 'XXX' ? parseInt(state.disc) : null;
+  if (!discNum) return '--:--';
+  const lib = nodeLibrary[nodeId] || [];
+  const cd = lib.find(c => c.slot === discNum);
+  return cd?.total_duration_seconds ? fmtSec(cd.total_duration_seconds) : '--:--';
+}
+
+function getTimeLineStr(nodeId, pid) {
+  return getInterpolatedTime(nodeId, pid) + ' | CD ' + getInterpolatedDiscTime(nodeId, pid) + ' / ' + getDiscTotal(nodeId, pid);
 }
 
 // Tick every second to update displayed time
 setInterval(() => {
-  if (!selectedNodeId) return;
-  for (const pid of [1, 2]) {
-    const el = document.getElementById(`p${pid}Time`);
-    if (el) el.textContent = getInterpolatedTime(selectedNodeId, pid);
+  // Update detail view
+  if (selectedNodeId) {
+    for (const pid of [1, 2]) {
+      const el = document.getElementById(`p${pid}Time`);
+      if (el) el.textContent = getInterpolatedTime(selectedNodeId, pid);
+    }
+  }
+  // Update mini-player times on dashboard
+  for (const nodeId of Object.keys(nodes)) {
+    for (const pid of [1, 2]) {
+      const el = document.getElementById(`miniTime-${nodeId}-${pid}`);
+      if (el) el.textContent = getTimeLineStr(nodeId, pid);
+    }
   }
 }, 1000);
 
