@@ -288,15 +288,22 @@ body {
   background: var(--bg);
 }
 
-.player-disc-info { display: flex; gap: 12px; margin-bottom: 8px; }
+.player-disc-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
 
 .disc-cover-wrap {
-  width: 80px;
-  height: 80px;
+  width: 180px;
+  height: 180px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
   background: var(--bg);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 
 .disc-cover { width: 100%; height: 100%; object-fit: cover; }
@@ -308,15 +315,15 @@ body {
   align-items: center;
   justify-content: center;
   color: var(--text-dim);
-  font-size: 1.5rem;
+  font-size: 2.5rem;
   font-weight: 700;
 }
 
-.disc-meta { flex: 1; min-width: 0; }
+.disc-meta { text-align: center; width: 100%; }
 
 .disc-title {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -324,7 +331,7 @@ body {
 
 .disc-artist {
   color: var(--text-dim);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -336,11 +343,12 @@ body {
 .player-rating-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin-bottom: 8px;
 }
 
-.player-track-info { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 6px; }
+.player-track-info { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 6px; text-align: center; }
 .track-title { color: var(--text); margin-left: 6px; }
 
 .player-time {
@@ -390,7 +398,7 @@ body {
 
 .volume-slider { flex: 1; accent-color: var(--accent); height: 4px; }
 
-.player-track-list { max-height: 200px; overflow-y: auto; font-size: 0.8rem; }
+.player-track-list { max-height: 320px; overflow-y: auto; font-size: 0.8rem; }
 
 .track-row {
   display: flex;
@@ -880,6 +888,7 @@ select.form-input { cursor: pointer; }
   .detail-header { padding: 8px 10px; }
   .node-card-players { grid-template-columns: 1fr; }
   .library-grid { grid-template-columns: 1fr; }
+  .disc-cover-wrap { width: 140px; height: 140px; }
   .cd-detail-row { flex-direction: column; align-items: center; }
   .shuffle-section { flex-direction: column; gap: 6px; }
   .shuffle-group { flex-wrap: wrap; }
