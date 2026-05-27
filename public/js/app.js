@@ -59,6 +59,7 @@ function initSubTabs() {
 
       if (btn.dataset.sub === 'library' && selectedNodeId) loadLibrary();
       if (btn.dataset.sub === 'favorites' && selectedNodeId) renderFavorites();
+      if (btn.dataset.sub === 'ratings' && selectedNodeId) renderRatings();
       if (btn.dataset.sub === 'playlists' && selectedNodeId) loadPlaylists();
     });
   });
@@ -626,6 +627,71 @@ function renderFavorites() {
             <div class="fav-artist">${esc(cdTitle)} &middot; Slot ${f.slot} &middot; Track ${f.track_number}</div>
           </div>
           <button class="btn-icon btn-fav active" onclick="event.stopPropagation();toggleFavItem(${f.slot}, ${f.track_number})">&#9829;</button>
+        </div>`;
+    }).join('');
+  }
+
+  el.innerHTML = html;
+}
+
+// ── Ratings Overview ──
+
+function renderRatings() {
+  const el = document.getElementById('ratingsList');
+  const ratings = nodeRatings[selectedNodeId] || [];
+  const rated = ratings.filter(r => r.rating > 0);
+
+  if (rated.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:30px">${t('ratings.empty')}</div>`;
+    return;
+  }
+
+  const lib = nodeLibrary[selectedNodeId] || [];
+
+  // Group: CD ratings (track_number = 0) and track ratings
+  const cdRated = rated.filter(r => !r.track_number || r.track_number === 0)
+    .sort((a, b) => b.rating - a.rating);
+  const trackRated = rated.filter(r => r.track_number && r.track_number > 0)
+    .sort((a, b) => b.rating - a.rating);
+
+  let html = '';
+
+  if (cdRated.length > 0) {
+    html += `<div class="card-title">${t('ratings.cds')}</div>`;
+    html += cdRated.map(r => {
+      const cd = lib.find(c => c.slot === r.slot);
+      const title = cd?.title || `CD ${r.slot}`;
+      const artist = cd?.artist || '';
+      const coverUrl = cd?.cover_url
+        ? `/api/nodes/${selectedNodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}`
+        : '';
+      return `
+        <div class="fav-item" onclick="openCdModal(${r.slot})">
+          ${coverUrl ? `<img class="fav-cover" src="${coverUrl}" alt="">` : `<div class="fav-cover fav-no-cover">${r.slot}</div>`}
+          <div class="fav-meta">
+            <div class="fav-title">${esc(title)}</div>
+            <div class="fav-artist">${esc(artist)}</div>
+            <div class="fav-slot">Slot ${r.slot}</div>
+          </div>
+          <div class="rating-display">${'&#9733;'.repeat(r.rating)}${'&#9734;'.repeat(5 - r.rating)}</div>
+        </div>`;
+    }).join('');
+  }
+
+  if (trackRated.length > 0) {
+    html += `<div class="card-title" style="margin-top:16px">${t('ratings.tracks')}</div>`;
+    html += trackRated.map(r => {
+      const cd = lib.find(c => c.slot === r.slot);
+      const tr = cd?.tracks?.find(t => t.track_number === r.track_number);
+      const title = tr?.title || `Track ${r.track_number}`;
+      const cdTitle = cd?.title || `CD ${r.slot}`;
+      return `
+        <div class="fav-item" onclick="playTrack(1, ${r.slot}, ${r.track_number})">
+          <div class="fav-meta">
+            <div class="fav-title">${esc(title)}</div>
+            <div class="fav-artist">${esc(cdTitle)} &middot; Slot ${r.slot} &middot; Track ${r.track_number}</div>
+          </div>
+          <div class="rating-display">${'&#9733;'.repeat(r.rating)}${'&#9734;'.repeat(5 - r.rating)}</div>
         </div>`;
     }).join('');
   }

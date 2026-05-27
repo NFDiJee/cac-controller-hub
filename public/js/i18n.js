@@ -52,6 +52,11 @@ const translations = {
     'favorites.cds': 'CD-Favoriten',
     'favorites.tracks': 'Track-Favoriten',
 
+    'nav.ratings': 'Bewertungen',
+    'ratings.empty': 'Keine Bewertungen vorhanden.',
+    'ratings.cds': 'CD-Bewertungen',
+    'ratings.tracks': 'Track-Bewertungen',
+
     'playlists.refresh': 'Aktualisieren',
     'playlists.play': 'Abspielen',
     'playlists.empty': 'Keine Playlists vorhanden.',
@@ -149,6 +154,11 @@ const translations = {
     'favorites.empty': 'No favorites yet.',
     'favorites.cds': 'CD Favorites',
     'favorites.tracks': 'Track Favorites',
+
+    'nav.ratings': 'Ratings',
+    'ratings.empty': 'No ratings yet.',
+    'ratings.cds': 'CD Ratings',
+    'ratings.tracks': 'Track Ratings',
 
     'playlists.refresh': 'Refresh',
     'playlists.play': 'Play',

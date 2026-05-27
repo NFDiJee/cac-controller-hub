@@ -644,6 +644,14 @@ body {
 }
 .fav-item:hover { border-color: var(--accent); }
 
+.rating-display {
+  color: var(--gold);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  margin-left: auto;
+  padding-left: 8px;
+}
+
 .fav-cover {
   width: 40px;
   height: 40px;
