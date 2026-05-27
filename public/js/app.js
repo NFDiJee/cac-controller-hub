@@ -223,12 +223,22 @@ function buildMiniPlayer(pid, state, nodeId) {
   // Sync time ref so interpolation works immediately
   if (nodeId && state.mode) syncTimeRef(nodeId, pid, state);
   const timeLine = nodeId ? getTimeLineStr(nodeId, pid) : '';
+  const coverUrl = cd && cd.cover_url && nodeId
+    ? `/api/nodes/${nodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}`
+    : '';
 
   return `
     <div class="mini-player">
-      <div class="mini-player-label">Player ${pid}</div>
-      <div class="mini-player-mode ${modeClass}">${modeLabel}</div>
-      <div class="mini-player-disc">${disc} ${track}</div>
+      <div class="mini-player-top">
+        ${coverUrl
+          ? `<img class="mini-player-cover" src="${coverUrl}" alt="">`
+          : `<div class="mini-player-cover mini-player-no-cover">CD</div>`}
+        <div class="mini-player-info">
+          <div class="mini-player-label">Player ${pid}</div>
+          <div class="mini-player-mode ${modeClass}">${modeLabel}</div>
+          <div class="mini-player-disc">${disc} ${track}</div>
+        </div>
+      </div>
       <div class="mini-player-time" id="miniTime-${nodeId}-${pid}">${timeLine}</div>
     </div>`;
 }
@@ -363,6 +373,8 @@ setInterval(() => {
     for (const pid of [1, 2]) {
       const el = document.getElementById(`p${pid}Time`);
       if (el) el.textContent = getInterpolatedTime(selectedNodeId, pid);
+      const dt = document.getElementById(`p${pid}DiscTime`);
+      if (dt) dt.textContent = 'CD ' + getInterpolatedDiscTime(selectedNodeId, pid) + ' / ' + getDiscTotal(selectedNodeId, pid);
     }
   }
   // Update mini-player times on dashboard
@@ -393,6 +405,8 @@ function updatePlayerUI() {
     // Time (interpolated locally)
     syncTimeRef(selectedNodeId, pid, p);
     document.getElementById(prefix + 'Time').textContent = getInterpolatedTime(selectedNodeId, pid);
+    document.getElementById(prefix + 'DiscTime').textContent =
+      'CD ' + getInterpolatedDiscTime(selectedNodeId, pid) + ' / ' + getDiscTotal(selectedNodeId, pid);
 
     // Track
     const track = p.track && p.track !== 'XX' ? p.track : '--';
