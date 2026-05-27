@@ -1,0 +1,21 @@
+{
+  "name": "cac-controller-hub",
+  "version": "1.0.0",
+  "description": "Central Hub for Pioneer CAC CD Autochanger Controller Nodes",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "express": "^5.0.0",
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Dirk Jensen",
+  "license": "MIT"
+}

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAC Hub - Technische Dokumentation</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --bg-card: #16213e;
+    --bg-code: #0f0f23;
+    --text: #e0e0e0;
+    --text-dim: #8a8a9a;
+    --accent: #4fc3f7;
+    --accent2: #81c784;
+    --border: #2a2a4a;
+    --table-stripe: #1a2740;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+  h1 {
+    font-size: 2.2rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 0.5rem;
+  }
+  h2 {
+    font-size: 1.6rem;
+    color: var(--accent);
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.3rem;
+  }
+  h3 {
+    font-size: 1.2rem;
+    color: var(--accent2);
+    margin-top: 2rem;
+    margin-bottom: 0.7rem;
+  }
+  h4 {
+    font-size: 1.05rem;
+    color: var(--text);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  p { margin-bottom: 1rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  strong { color: #fff; }
+  em { color: var(--accent2); font-style: normal; }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    background: var(--bg-code);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+    color: var(--accent2);
+  }
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: var(--text);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  th {
+    background: var(--bg-code);
+    color: var(--accent);
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    font-weight: 600;
+  }
+  td {
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--border);
+  }
+  tr:nth-child(even) td { background: var(--table-stripe); }
+  ul, ol {
+    margin: 0.5rem 0 1rem 1.5rem;
+  }
+  li { margin-bottom: 0.3rem; }
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+  }
+  .toc h2 { margin-top: 0; border: none; font-size: 1.3rem; }
+  .toc ol { margin-left: 1.2rem; }
+  .toc li { margin-bottom: 0.2rem; }
+  .toc a { color: var(--text); }
+  .toc a:hover { color: var(--accent); }
+  .diagram {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.2rem;
+    margin: 1rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-x: auto;
+    color: var(--text-dim);
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.15em 0.5em;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .badge-blue { background: #1565c0; color: #fff; }
+  .badge-green { background: #2e7d32; color: #fff; }
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 700px) {
+    .container { padding: 1rem; }
+    h1 { font-size: 1.6rem; }
+    h2 { font-size: 1.3rem; }
+    pre { font-size: 0.75rem; padding: 0.8rem; }
+    table { font-size: 0.8rem; }
+    th, td { padding: 0.3rem 0.5rem; }
+  }
+  @media print {
+    body { background: #fff; color: #000; }
+    .container { max-width: 100%; }
+    h1, h2, h3 { color: #000; }
+    code { background: #f0f0f0; color: #333; }
+    pre { background: #f5f5f5; border-color: #ccc; }
+    th { background: #e0e0e0; color: #000; }
+    tr:nth-child(even) td { background: #f9f9f9; }
+    .toc { background: #f5f5f5; border-color: #ccc; }
+    a { color: #000; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>CAC Hub</h1>
+<p class="subtitle">Technische Dokumentation &mdash; Zentrales Dashboard fuer Pioneer CAC CD-Automatenwechsler im Netzwerk</p>
+
+<div class="toc">
+<h2>Inhalt</h2>
+<ol>
+  <li><a href="#konzept">Konzept und Design-Prinzipien</a></li>
+  <li><a href="#arch">Software-Architektur</a></li>
+  <li><a href="#frontend">Frontend</a></li>
+  <li><a href="#flow">Datenfluss</a></li>
+  <li><a href="#db">Datenbank-Details</a></li>
+  <li><a href="#api">REST-API-Referenz</a></li>
+  <li><a href="#deploy">Deployment</a></li>
+  <li><a href="#security">Sicherheit</a></li>
+  <li><a href="#limits">Bekannte Einschraenkungen</a></li>
+  <li><a href="#lizenz">Lizenz</a></li>
+</ol>
+</div>
+
+<!-- ── Projektbeschreibung ── -->
+<h2>Projektbeschreibung</h2>
+
+<p>Der CAC Hub ist ein zentrales Dashboard fuer die Verwaltung mehrerer Pioneer CAC CD-Automatenwechsler im Netzwerk. Er verbindet sich per REST-API und WebSocket mit beliebig vielen <a href="https://github.com/NFDiJee/cac-controller">CAC Controller</a>-Nodes und bietet eine einheitliche Oberflaeche fuer Monitoring und Steuerung aller Wechsler von einem einzigen Standort aus.</p>
+
+<h3>Systemarchitektur</h3>
+<div class="diagram">&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;                   Browser                        &#x2502;
+&#x2502;          (Smartphone / Tablet / PC)              &#x2502;
+&#x2502;  &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510; &#x2502;
+&#x2502;  &#x2502;         Hub Single Page App                 &#x2502; &#x2502;
+&#x2502;  &#x2502;   HTML + CSS + JavaScript (app.js, i18n.js) &#x2502; &#x2502;
+&#x2502;  &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518; &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+                 &#x2502; HTTP (REST API) + WebSocket
+                 &#x2502;
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;  Hub-Server    &#x2502;  Express (server.js, Port 4000)  &#x2502;
+&#x2502;  &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2534;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510; &#x2502;
+&#x2502;  &#x2502;   routes.js (Hub-API + Proxy)               &#x2502; &#x2502;
+&#x2502;  &#x2502;   websocket.js (Aggregierte Live-Updates)    &#x2502; &#x2502;
+&#x2502;  &#x251C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2524; &#x2502;
+&#x2502;  &#x2502;   node-manager.js                           &#x2502; &#x2502;
+&#x2502;  &#x2502;   (WS-Verbindungen, Health-Checks,          &#x2502; &#x2502;
+&#x2502;  &#x2502;    State-Aggregation, Auto-Reconnect)       &#x2502; &#x2502;
+&#x2502;  &#x251C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2524; &#x2502;
+&#x2502;  &#x2502;   database.js (SQLite: Nodes + Settings)    &#x2502; &#x2502;
+&#x2502;  &#x2514;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518; &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x252C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+       &#x2502;             &#x2502;             &#x2502;
+       &#x2502; REST + WS   &#x2502; REST + WS   &#x2502; REST + WS
+       &#x2502; (API-Key)   &#x2502; (API-Key)   &#x2502; (API-Key)
+       v             v             v
+&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510; &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510; &#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+&#x2502;  Node 1    &#x2502; &#x2502;  Node 2    &#x2502; &#x2502;  Node 3    &#x2502;
+&#x2502; Wohnzimmer &#x2502; &#x2502;  Studio    &#x2502; &#x2502;    Bar     &#x2502;
+&#x2502; CAC-V3000  &#x2502; &#x2502; CAC-V5000  &#x2502; &#x2502; CAC-V180M  &#x2502;
+&#x2502; RPi :3000  &#x2502; &#x2502; RPi :3000  &#x2502; &#x2502; RPi :3000  &#x2502;
+&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518; &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518; &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;</div>
+
+<hr>
+
+<!-- ── 1. Konzept ── -->
+<h2 id="konzept">1. Konzept und Design-Prinzipien</h2>
+
+<h3>1.1 Dezentrale Architektur</h3>
+<p>Jeder CAC Controller Node laeuft als eigenstaendige Anwendung auf einem Raspberry Pi und steuert genau einen Pioneer CD-Automatenwechsler. Der Hub ist <strong>optional</strong> &mdash; jeder Node funktioniert vollstaendig ohne Hub.</p>
+
+<h3>1.2 Hub als Aggregator</h3>
+<p>Der Hub sammelt Zustandsinformationen von allen Nodes und leitet sie an die Hub-UI-Clients weiter. Er speichert keine CD-Daten oder Bibliotheken &mdash; diese verbleiben ausschliesslich auf den Nodes.</p>
+
+<h3>1.3 Vollstaendiger Fernzugriff</h3>
+<p>Ueber die Proxy-API hat der Hub <strong>vollen Zugriff</strong> auf alle Funktionen jedes Nodes: Player-Steuerung, Library-CRUD, Playlists, Scanner, MusicBrainz-Suche, Favoriten, Bewertungen, History, Einstellungen &mdash; alles.</p>
+
+<h3>1.4 API-Key-Authentifizierung</h3>
+<p>Jede Kommunikation zwischen Hub und Node ist per API-Key authentifiziert. Der Hub sendet den <code>X-API-Key</code>-Header bei jedem Proxy-Request und verbindet sich per <code>ws://node:port/?hub=1&amp;apikey=&lt;key&gt;</code> fuer WebSocket.</p>
+
+<hr>
+
+<!-- ── 2. Architektur ── -->
+<h2 id="arch">2. Software-Architektur</h2>
+
+<h3>2.1 Technologie-Stack</h3>
+<table>
+  <tr><th>Komponente</th><th>Technologie</th><th>Version</th></tr>
+  <tr><td>Runtime</td><td>Node.js</td><td>&ge; 18.x</td></tr>
+  <tr><td>Web-Framework</td><td>Express</td><td>5.x</td></tr>
+  <tr><td>WebSocket</td><td>ws</td><td>8.x</td></tr>
+  <tr><td>Datenbank</td><td>better-sqlite3</td><td>11.x</td></tr>
+  <tr><td>Frontend</td><td>Vanilla JS (SPA)</td><td>&mdash;</td></tr>
+  <tr><td>i18n</td><td>Eigene Loesung</td><td>DE/EN</td></tr>
+</table>
+
+<h3>2.2 Projektstruktur</h3>
+<pre><code>cac-controller-hub/
+&#x251C;&#x2500;&#x2500; server.js                 # Einstiegspunkt (Port 4000)
+&#x251C;&#x2500;&#x2500; package.json
+&#x251C;&#x2500;&#x2500; cac-hub.service           # Systemd-Unit
+&#x251C;&#x2500;&#x2500; src/
+&#x2502;   &#x251C;&#x2500;&#x2500; database.js           # SQLite (Nodes, Settings)
+&#x2502;   &#x251C;&#x2500;&#x2500; node-manager.js       # WebSocket-Verbindungen zu Nodes
+&#x2502;   &#x251C;&#x2500;&#x2500; routes.js             # Hub-API + Proxy-Routen
+&#x2502;   &#x2514;&#x2500;&#x2500; websocket.js          # WebSocket fuer Hub-UI
+&#x251C;&#x2500;&#x2500; public/
+&#x2502;   &#x251C;&#x2500;&#x2500; index.html            # Hub SPA
+&#x2502;   &#x251C;&#x2500;&#x2500; css/app.css           # Dark Theme
+&#x2502;   &#x2514;&#x2500;&#x2500; js/
+&#x2502;       &#x251C;&#x2500;&#x2500; app.js            # Frontend-Logik
+&#x2502;       &#x2514;&#x2500;&#x2500; i18n.js           # Uebersetzungen (DE/EN)
+&#x2514;&#x2500;&#x2500; data/
+    &#x2514;&#x2500;&#x2500; cac-hub.db            # SQLite-Datenbank</code></pre>
+
+<h3>2.3 Modul-Uebersicht</h3>
+
+<h4>server.js &mdash; Einstiegspunkt</h4>
+<p>Initialisiert Datenbank, NodeManager, Express-Server und WebSocket. Verbindet sich beim Start mit allen aktivierten Nodes. Graceful Shutdown per SIGINT/SIGTERM.</p>
+
+<h4>database.js &mdash; SQLite-Datenbank</h4>
+<p>Speichert die Node-Konfiguration und Hub-Einstellungen:</p>
+<pre><code>nodes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,                  -- Anzeigename
+  url TEXT NOT NULL,          -- z.B. http://192.168.1.100:3000
+  api_key TEXT,               -- API-Key fuer Authentifizierung
+  room TEXT,                  -- Raum/Standort
+  model TEXT,                 -- Pioneer-Modell (automatisch)
+  enabled INTEGER DEFAULT 1,  -- Aktiviert/Deaktiviert
+  sort_order INTEGER DEFAULT 0,
+  created_at TEXT,
+  updated_at TEXT
+)
+
+settings (
+  key TEXT PRIMARY KEY,
+  value TEXT
+)</code></pre>
+<p>Standard-Einstellungen: <code>hub_port</code>, <code>hub_name</code>, <code>language</code>, <code>reconnect_interval</code>, <code>health_check_interval</code>.</p>
+
+<h4>node-manager.js &mdash; Node-Verbindungsmanager</h4>
+<p>Zentrales Modul fuer die Kommunikation mit allen Nodes:</p>
+<p><strong>WebSocket-Verbindungen:</strong></p>
+<ul>
+  <li>Verbindet sich per <code>ws://node:port/?hub=1&amp;apikey=&lt;key&gt;</code> mit jedem aktivierten Node</li>
+  <li>Empfaengt <code>hubInit</code>-Nachricht bei Verbindung (Name, Raum, Modell, Player-Status)</li>
+  <li>Empfaengt alle Broadcast-Events (playerState, scanProgress, playModeChange, etc.)</li>
+  <li>Aggregiert den Zustand aller Nodes in einer zentralen Map</li>
+</ul>
+<p><strong>Auto-Reconnect:</strong></p>
+<ul>
+  <li>Bei Verbindungsverlust wird alle 10 Sekunden (konfigurierbar) ein Wiederverbindungsversuch gestartet</li>
+  <li>Node-Daten werden vor dem Reconnect aus der DB aktualisiert (falls URL/Key geaendert)</li>
+</ul>
+<p><strong>Health-Checks:</strong></p>
+<ul>
+  <li>Alle 30 Sekunden (konfigurierbar) wird per REST-API der Status jedes Nodes abgefragt</li>
+  <li>Dient als Backup fuer den Fall, dass WebSocket-Events verloren gehen</li>
+</ul>
+<p><strong>Proxy-Funktion:</strong></p>
+<ul>
+  <li><code>proxyRequest(nodeId, method, path, body)</code> &mdash; leitet beliebige API-Aufrufe an den Node weiter</li>
+  <li><code>proxyBinary(nodeId, path)</code> &mdash; leitet binaere Inhalte (Cover-Bilder) weiter</li>
+  <li>Fuegt automatisch den <code>X-API-Key</code>-Header hinzu</li>
+</ul>
+<p><strong>Events:</strong></p>
+<ul>
+  <li><code>nodeOnline</code> &mdash; Node ist verbunden</li>
+  <li><code>nodeOffline</code> &mdash; Verbindung verloren</li>
+  <li><code>nodeState</code> &mdash; Vollstaendiger Zustand empfangen (hubInit)</li>
+  <li><code>nodeEvent</code> &mdash; Einzelnes Event von einem Node</li>
+</ul>
+
+<h4>routes.js &mdash; Hub-API und Proxy</h4>
+<p><strong>Hub-eigene Endpunkte:</strong></p>
+<ul>
+  <li><code>GET /api/hub/status</code> &mdash; Hub-Uebersicht mit allen Nodes</li>
+  <li>CRUD fuer Nodes: <code>GET/POST/PUT/DELETE /api/nodes</code></li>
+  <li><code>POST /api/nodes/test</code> &mdash; Verbindungstest zu einem Node</li>
+  <li><code>GET/PUT /api/settings</code> &mdash; Hub-Einstellungen</li>
+</ul>
+<p><strong>Proxy-Endpunkte:</strong></p>
+<ul>
+  <li><code>ALL /api/nodes/:id/proxy/{*path}</code> &mdash; Leitet jeden API-Aufruf an den Node weiter</li>
+  <li><code>GET /api/nodes/:id/cover/{*path}</code> &mdash; Leitet Cover-Bilder weiter</li>
+</ul>
+<p>Der Proxy ist transparent: Der Hub-Client ruft z.B. <code>/api/nodes/1/proxy/library</code> auf, der Hub leitet dies als <code>GET http://node:3000/api/library</code> mit API-Key weiter.</p>
+
+<h4>websocket.js &mdash; Hub-WebSocket</h4>
+<p>Verwaltet WebSocket-Verbindungen von Hub-UI-Clients:</p>
+<ul>
+  <li>Bei Verbindung: Sendet <code>init</code>-Nachricht mit dem aktuellen Zustand aller Nodes</li>
+  <li>Leitet alle Events vom NodeManager an alle Hub-Clients weiter</li>
+  <li>Jede Nachricht enthaelt die <code>nodeId</code>, damit der Client weiss, welcher Node betroffen ist</li>
+</ul>
+
+<hr>
+
+<!-- ── 3. Frontend ── -->
+<h2 id="frontend">3. Frontend</h2>
+
+<h3>3.1 Dashboard</h3>
+<p>Das Dashboard zeigt alle konfigurierten Nodes als Karten in einem responsiven Grid:</p>
+<ul>
+  <li><strong>Statusanzeige</strong>: Gruener Punkt = online, roter Punkt = offline</li>
+  <li><strong>Mini-Player</strong>: Fuer jeden Node werden beide Player mit Modus, Disc und Track angezeigt</li>
+  <li><strong>Quick-Controls</strong>: Play, Pause, Stop und Next direkt auf der Dashboard-Karte</li>
+  <li><strong>Klick</strong>: Oeffnet die Detail-Ansicht des Nodes</li>
+</ul>
+
+<h3>3.2 Node-Detail-Ansicht</h3>
+<p>Vollstaendige Steuerung eines ausgewaehlten Nodes mit vier Sub-Tabs:</p>
+<p><strong>Player:</strong></p>
+<ul>
+  <li>Beide Player nebeneinander (responsiv: untereinander auf Mobilgeraeten)</li>
+  <li>Cover-Bild, Disc-Titel, Kuenstler, Slot-Nummer</li>
+  <li>Track-Nummer und Track-Titel</li>
+  <li>Zeitanzeige (Echtzeit via WebSocket)</li>
+  <li>Transport-Controls: Previous, Stop, Play, Pause, Next</li>
+  <li>Volume-Slider</li>
+  <li>Track-Liste der aktuellen CD (klickbar zum Abspielen)</li>
+  <li>Play-Modi: Continuous, Gapless, Shuffle</li>
+</ul>
+<p><strong>Library:</strong></p>
+<ul>
+  <li>Durchsuchbare Liste aller CDs des Nodes</li>
+  <li>Cover-Bilder (via Proxy geladen)</li>
+  <li>Detail-Modal mit Track-Liste</li>
+  <li>Load-Buttons fuer Player 1 und Player 2</li>
+</ul>
+<p><strong>Playlists:</strong></p>
+<ul>
+  <li>Liste aller Playlists des Nodes</li>
+  <li>Play-Button zum Starten</li>
+</ul>
+<p><strong>Scanner:</strong></p>
+<ul>
+  <li>Start/End-Slot eingeben</li>
+  <li>Scan starten / abbrechen</li>
+  <li>Live-Fortschrittsbalken via WebSocket</li>
+</ul>
+
+<h3>3.3 Einstellungen</h3>
+<ul>
+  <li><strong>Nodes verwalten</strong>: Liste aller Nodes mit Status, Loeschen-Button</li>
+  <li><strong>Node hinzufuegen</strong>: URL, API-Key, Name, Raum eingeben; Verbindungstest; Auto-Fill von Name/Raum/Modell</li>
+  <li><strong>Hub-Einstellungen</strong>: Name, Port, Sprache</li>
+</ul>
+
+<h3>3.4 Internationalisierung</h3>
+<p>Wie beim Node: <code>data-i18n</code>-Attribute, <code>t('key')</code>-Funktion, Sprachumschaltung per Button. Ca. 80 Uebersetzungsschluessel fuer Deutsch und Englisch.</p>
+
+<hr>
+
+<!-- ── 4. Datenfluss ── -->
+<h2 id="flow">4. Datenfluss</h2>
+
+<h3>4.1 Hub-Start</h3>
+<pre><code>1. Datenbank initialisieren
+2. NodeManager erstellen
+3. Express-Server starten (Port 4000)
+4. Hub-WebSocket starten
+5. Fuer jeden aktivierten Node:
+   a. WebSocket-Verbindung oeffnen
+   b. hubInit empfangen -&gt; Zustand speichern
+   c. Health-Check-Timer starten</code></pre>
+
+<h3>4.2 Dashboard-Update bei Player-Aenderung</h3>
+<div class="diagram">Node (V3000)          Hub-Server              Hub-Browser
+    |                     |                        |
+    | WS: playerState     |                        |
+    | { mode: 'P04' }     |                        |
+    |&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&gt;|                        |
+    |                     | WS: nodeEvent          |
+    |                     | { nodeId: 1,           |
+    |                     |   event: playerState } |
+    |                     |&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&gt;|
+    |                     |                        | Dashboard-Karte
+    |                     |                        | aktualisieren</div>
+
+<h3>4.3 Proxy-Kommando (z.B. Play druecken)</h3>
+<div class="diagram">Hub-Browser              Hub-Server              Node
+    |                        |                      |
+    | POST /api/nodes/1/     |                      |
+    | proxy/player/1/play    |                      |
+    |&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&gt;|                      |
+    |                        | POST /api/player/    |
+    |                        | 1/play               |
+    |                        | X-API-Key: abc123    |
+    |                        |&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&gt;|
+    |                        |                      |
+    |                        |   { ok: true }       |
+    |                        |&lt;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;|
+    |    { ok: true }        |                      |
+    |&lt;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;|                      |</div>
+
+<h3>4.4 Library laden</h3>
+<div class="diagram">Hub-Browser              Hub-Server              Node
+    |                        |                      |
+    | GET /api/nodes/1/      |                      |
+    | proxy/library          |                      |
+    |&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&gt;|                      |
+    |                        | GET /api/library     |
+    |                        | X-API-Key: abc123    |
+    |                        |&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&gt;|
+    |                        |                      |
+    |                        |  [ { slot: 1, ... }, |
+    |                        |    { slot: 2, ... }] |
+    |                        |&lt;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;|
+    |  [ { slot: 1, ... },   |                      |
+    |    { slot: 2, ... } ]  |                      |
+    |&lt;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;|                      |
+    |                        |                      |
+    | Library-Grid rendern   |                      |</div>
+
+<hr>
+
+<!-- ── 5. Datenbank ── -->
+<h2 id="db">5. Datenbank-Details</h2>
+
+<h3>5.1 Schema</h3>
+<p>Die Hub-Datenbank ist minimalistisch &mdash; sie speichert nur Node-Konfigurationen und Hub-Einstellungen. Alle CD-Daten, Playlists, Favoriten etc. verbleiben auf den Nodes.</p>
+
+<h3>5.2 WAL-Modus</h3>
+<p>Write-Ahead Logging fuer bessere Performance bei gleichzeitigem Lesen und Schreiben.</p>
+
+<h3>5.3 Standard-Einstellungen</h3>
+<table>
+  <tr><th>Schluessel</th><th>Standard</th><th>Beschreibung</th></tr>
+  <tr><td><code>hub_port</code></td><td><code>4000</code></td><td>HTTP-Port</td></tr>
+  <tr><td><code>hub_name</code></td><td><code>CAC Hub</code></td><td>Anzeigename</td></tr>
+  <tr><td><code>language</code></td><td><code>auto</code></td><td>Sprache (auto/de/en)</td></tr>
+  <tr><td><code>reconnect_interval</code></td><td><code>10000</code></td><td>Reconnect-Intervall (ms)</td></tr>
+  <tr><td><code>health_check_interval</code></td><td><code>30000</code></td><td>Health-Check-Intervall (ms)</td></tr>
+</table>
+
+<hr>
+
+<!-- ── 6. API ── -->
+<h2 id="api">6. REST-API-Referenz</h2>
+
+<h3>6.1 Hub-Endpunkte</h3>
+<table>
+  <tr><th>Methode</th><th>Endpunkt</th><th>Beschreibung</th></tr>
+  <tr><td><code>GET</code></td><td><code>/api/hub/status</code></td><td>Hub-Uebersicht mit allen Nodes und Status</td></tr>
+  <tr><td><code>GET</code></td><td><code>/api/nodes</code></td><td>Alle Nodes mit Verbindungsstatus</td></tr>
+  <tr><td><code>POST</code></td><td><code>/api/nodes</code></td><td>Node hinzufuegen <code>{ url, api_key, name, room }</code></td></tr>
+  <tr><td><code>GET</code></td><td><code>/api/nodes/:id</code></td><td>Einzelnen Node mit Status abrufen</td></tr>
+  <tr><td><code>PUT</code></td><td><code>/api/nodes/:id</code></td><td>Node aktualisieren</td></tr>
+  <tr><td><code>DELETE</code></td><td><code>/api/nodes/:id</code></td><td>Node entfernen</td></tr>
+  <tr><td><code>POST</code></td><td><code>/api/nodes/test</code></td><td>Verbindungstest <code>{ url, api_key }</code></td></tr>
+  <tr><td><code>GET</code></td><td><code>/api/settings</code></td><td>Hub-Einstellungen abrufen</td></tr>
+  <tr><td><code>PUT</code></td><td><code>/api/settings</code></td><td>Hub-Einstellungen aktualisieren</td></tr>
+</table>
+
+<h3>6.2 Proxy-Endpunkte</h3>
+<table>
+  <tr><th>Methode</th><th>Endpunkt</th><th>Beschreibung</th></tr>
+  <tr><td><code>ALL</code></td><td><code>/api/nodes/:id/proxy/*</code></td><td>Beliebigen API-Aufruf an Node weiterleiten</td></tr>
+  <tr><td><code>GET</code></td><td><code>/api/nodes/:id/cover/*</code></td><td>Cover-Bild von Node laden</td></tr>
+</table>
+<p>Beispiele:</p>
+<ul>
+  <li><code>GET /api/nodes/1/proxy/library</code> &rarr; <code>GET http://node:3000/api/library</code></li>
+  <li><code>POST /api/nodes/1/proxy/player/1/play</code> &rarr; <code>POST http://node:3000/api/player/1/play</code></li>
+  <li><code>PUT /api/nodes/1/proxy/library/42</code> &rarr; <code>PUT http://node:3000/api/library/42</code></li>
+  <li><code>GET /api/nodes/1/cover/cover_42.jpg</code> &rarr; <code>GET http://node:3000/covers/cover_42.jpg</code></li>
+</ul>
+
+<h3>6.3 WebSocket-Nachrichten</h3>
+<table>
+  <tr><th>Typ</th><th>Richtung</th><th>Beschreibung</th></tr>
+  <tr><td><code>init</code></td><td>Hub &rarr; Client</td><td>Initialer Zustand aller Nodes</td></tr>
+  <tr><td><code>nodeOnline</code></td><td>Hub &rarr; Client</td><td>Node verbunden</td></tr>
+  <tr><td><code>nodeOffline</code></td><td>Hub &rarr; Client</td><td>Node getrennt</td></tr>
+  <tr><td><code>nodeState</code></td><td>Hub &rarr; Client</td><td>Vollstaendiger Zustand eines Nodes</td></tr>
+  <tr><td><code>nodeEvent</code></td><td>Hub &rarr; Client</td><td>Weitergeleitetes Event (playerState, scanProgress, etc.)</td></tr>
+</table>
+
+<hr>
+
+<!-- ── 7. Deployment ── -->
+<h2 id="deploy">7. Deployment</h2>
+
+<h3>7.1 Systemd-Service</h3>
+<pre><code>[Unit]
+Description=CAC Hub - Central Dashboard for Pioneer CD Autochanger Nodes
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/opt/cac-controller-hub
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+
+<h3>7.2 Hub und Node auf demselben Pi</h3>
+<p>Beide Anwendungen koennen gleichzeitig auf demselben Raspberry Pi laufen:</p>
+<ul>
+  <li>Node auf Port 3000 (Standard)</li>
+  <li>Hub auf Port 4000 (Standard)</li>
+  <li>Node im Hub hinzufuegen mit URL <code>http://localhost:3000</code></li>
+</ul>
+
+<h3>7.3 Netzwerk-Anforderungen</h3>
+<ul>
+  <li>Alle Nodes muessen vom Hub-Pi aus per HTTP erreichbar sein</li>
+  <li>Standard-Ports: Node 3000, Hub 4000</li>
+  <li>Empfohlen: Statische IP-Adressen oder DNS fuer alle Pis</li>
+</ul>
+
+<hr>
+
+<!-- ── 8. Sicherheit ── -->
+<h2 id="security">8. Sicherheit</h2>
+
+<h3>8.1 API-Key-Authentifizierung</h3>
+<ul>
+  <li>Jeder Node generiert einen 32-stelligen alphanumerischen API-Key</li>
+  <li>Der Hub speichert den Key verschluesselt in seiner SQLite-Datenbank</li>
+  <li>Alle Proxy-Requests enthalten den <code>X-API-Key</code>-Header</li>
+  <li>WebSocket-Verbindungen erfordern den Key als Query-Parameter</li>
+</ul>
+
+<h3>8.2 Empfehlungen</h3>
+<ul>
+  <li>Nur im lokalen Netzwerk betreiben</li>
+  <li>Kein Port-Forwarding zum Internet</li>
+  <li>Starke, zufaellige API-Keys verwenden (die Node-UI generiert automatisch sichere Keys)</li>
+  <li>Bei Bedarf: Nginx als Reverse-Proxy mit TLS</li>
+</ul>
+
+<hr>
+
+<!-- ── 9. Einschraenkungen ── -->
+<h2 id="limits">9. Bekannte Einschraenkungen</h2>
+<ol>
+  <li><strong>Keine eigene Datenhaltung:</strong> Der Hub speichert keine CD-Daten. Bei Verlust der Verbindung zu einem Node sind dessen Daten im Hub nicht mehr sichtbar.</li>
+  <li><strong>Kein Cross-Node-Streaming:</strong> Der Hub kann nicht Audio von einem Node auf einem anderen Geraet wiedergeben. Jeder Node hat seinen eigenen analogen Audioausgang.</li>
+  <li><strong>Keine Cross-Node-Playlists:</strong> Playlists koennen nur CDs eines einzelnen Nodes enthalten. Eine uebergreifende Playlist ueber mehrere Wechsler ist nicht unterstuetzt.</li>
+  <li><strong>Kein HTTPS:</strong> Die Kommunikation zwischen Hub und Nodes erfolgt unverschluesselt (nur fuer LAN gedacht).</li>
+</ol>
+
+<hr>
+
+<!-- ── 10. Lizenz ── -->
+<h2 id="lizenz">10. Lizenz</h2>
+<p>MIT License &mdash; Copyright &copy; 2025 Dirk Jensen &mdash; siehe <a href="../LICENSE">LICENSE</a>.</p>
+
+<hr>
+<p style="color: var(--text-dim); font-size: 0.85rem;">
+  CAC Hub v1.0.0 &mdash; Copyright &copy; 2025 Dirk Jensen<br>
+  MIT License
+</p>
+
+</div>
+</body>
+</html>

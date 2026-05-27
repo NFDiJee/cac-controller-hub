@@ -1,0 +1,15 @@
+[Unit]
+Description=CAC Hub - Central Dashboard for Pioneer CD Autochanger Nodes
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/opt/cac-controller-hub
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

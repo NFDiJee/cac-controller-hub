@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>CAC Hub</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f0f23">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="header-left">
+    <div class="hub-title" data-i18n="hub.title">CAC Hub</div>
+  </div>
+  <div class="header-right">
+    <button class="nav-btn active" data-tab="dashboard" data-i18n="nav.dashboard">Dashboard</button>
+    <button class="nav-btn" data-tab="settings" data-i18n="nav.settings">Einstellungen</button>
+    <button class="lang-btn" onclick="toggleLanguage()">EN</button>
+  </div>
+</header>
+
+<!-- ── Dashboard Tab ── -->
+<div id="tab-dashboard" class="tab-content active">
+
+  <!-- Node Grid (dashboard view) -->
+  <div id="nodeGrid" class="node-grid">
+    <div class="empty-state" data-i18n="dashboard.empty">Keine Nodes konfiguriert. Fuege Nodes in den Einstellungen hinzu.</div>
+  </div>
+
+  <!-- Node Detail (when a node is selected) -->
+  <div id="nodeDetail" class="node-detail" style="display:none">
+    <div class="detail-header">
+      <button class="btn btn-dim" onclick="showDashboard()">&#8592; <span data-i18n="nav.back">Zurueck</span></button>
+      <div class="detail-title">
+        <span id="detailNodeName"></span>
+        <span id="detailNodeRoom" class="detail-room"></span>
+        <span id="detailNodeModel" class="detail-model"></span>
+      </div>
+      <div class="detail-actions">
+        <a id="detailOpenLink" href="#" target="_blank" class="btn btn-dim" data-i18n="node.openUI">Webinterface</a>
+      </div>
+    </div>
+
+    <!-- Sub-navigation -->
+    <div class="detail-nav">
+      <button class="sub-nav-btn active" data-sub="player" data-i18n="nav.player">Player</button>
+      <button class="sub-nav-btn" data-sub="library" data-i18n="nav.library">Library</button>
+      <button class="sub-nav-btn" data-sub="playlists" data-i18n="nav.playlists">Playlists</button>
+      <button class="sub-nav-btn" data-sub="scanner" data-i18n="nav.scanner">Scanner</button>
+    </div>
+
+    <!-- Player Sub-View -->
+    <div id="sub-player" class="sub-content active">
+      <div class="players-row">
+        <!-- Player 1 -->
+        <div class="player-card" id="playerCard1">
+          <div class="player-header">
+            <span class="player-label">Player 1</span>
+            <span class="player-mode" id="p1Mode">--</span>
+          </div>
+          <div class="player-disc-info">
+            <div class="disc-cover-wrap">
+              <img id="p1Cover" class="disc-cover" src="" alt="" style="display:none">
+              <div id="p1NoCover" class="disc-no-cover">CD</div>
+            </div>
+            <div class="disc-meta">
+              <div class="disc-title" id="p1DiscTitle">--</div>
+              <div class="disc-artist" id="p1DiscArtist">--</div>
+              <div class="disc-slot" id="p1DiscSlot">--</div>
+            </div>
+          </div>
+          <div class="player-track-info">
+            <span data-i18n="player.track">Track</span> <span id="p1Track">--</span>
+            <span class="track-title" id="p1TrackTitle"></span>
+          </div>
+          <div class="player-time" id="p1Time">00:00</div>
+          <div class="transport-controls">
+            <button class="transport-btn" onclick="nodeCmd(1,'previous')" title="Previous">&#9198;</button>
+            <button class="transport-btn" onclick="nodeCmd(1,'stop')" title="Stop">&#9209;</button>
+            <button class="transport-btn btn-play" onclick="nodeCmd(1,'play')" title="Play">&#9654;</button>
+            <button class="transport-btn" onclick="nodeCmd(1,'pause')" title="Pause">&#9208;</button>
+            <button class="transport-btn" onclick="nodeCmd(1,'next')" title="Next">&#9197;</button>
+          </div>
+          <div class="volume-row">
+            <span data-i18n="player.volume">Lautst.</span>
+            <input type="range" id="p1Volume" class="volume-slider" min="0" max="255" value="200"
+                   oninput="setVolume(1, this.value)">
+          </div>
+          <div class="player-track-list" id="p1TrackList"></div>
+        </div>
+
+        <!-- Player 2 -->
+        <div class="player-card" id="playerCard2">
+          <div class="player-header">
+            <span class="player-label">Player 2</span>
+            <span class="player-mode" id="p2Mode">--</span>
+          </div>
+          <div class="player-disc-info">
+            <div class="disc-cover-wrap">
+              <img id="p2Cover" class="disc-cover" src="" alt="" style="display:none">
+              <div id="p2NoCover" class="disc-no-cover">CD</div>
+            </div>
+            <div class="disc-meta">
+              <div class="disc-title" id="p2DiscTitle">--</div>
+              <div class="disc-artist" id="p2DiscArtist">--</div>
+              <div class="disc-slot" id="p2DiscSlot">--</div>
+            </div>
+          </div>
+          <div class="player-track-info">
+            <span data-i18n="player.track">Track</span> <span id="p2Track">--</span>
+            <span class="track-title" id="p2TrackTitle"></span>
+          </div>
+          <div class="player-time" id="p2Time">00:00</div>
+          <div class="transport-controls">
+            <button class="transport-btn" onclick="nodeCmd(2,'previous')" title="Previous">&#9198;</button>
+            <button class="transport-btn" onclick="nodeCmd(2,'stop')" title="Stop">&#9209;</button>
+            <button class="transport-btn btn-play" onclick="nodeCmd(2,'play')" title="Play">&#9654;</button>
+            <button class="transport-btn" onclick="nodeCmd(2,'pause')" title="Pause">&#9208;</button>
+            <button class="transport-btn" onclick="nodeCmd(2,'next')" title="Next">&#9197;</button>
+          </div>
+          <div class="volume-row">
+            <span data-i18n="player.volume">Lautst.</span>
+            <input type="range" id="p2Volume" class="volume-slider" min="0" max="255" value="200"
+                   oninput="setVolume(2, this.value)">
+          </div>
+          <div class="player-track-list" id="p2TrackList"></div>
+        </div>
+      </div>
+
+      <!-- Play Modes -->
+      <div class="play-modes">
+        <label class="mode-toggle">
+          <input type="checkbox" id="modeContinuous" onchange="setPlayMode('continuous', this.checked)">
+          <span data-i18n="mode.continuous">Continuous</span>
+        </label>
+        <label class="mode-toggle">
+          <input type="checkbox" id="modeGapless" onchange="setPlayMode('gapless', this.checked)">
+          <span data-i18n="mode.gapless">Gapless</span>
+        </label>
+        <label class="mode-toggle">
+          <input type="checkbox" id="modeShuffle" onchange="toggleShuffle()">
+          <span data-i18n="mode.shuffle">Shuffle</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Library Sub-View -->
+    <div id="sub-library" class="sub-content" style="display:none">
+      <div class="library-toolbar">
+        <input type="text" id="libSearch" class="form-input" placeholder="Suchen..."
+               data-i18n-placeholder="library.search" oninput="filterLibrary()">
+        <span class="lib-count" id="libCount">0 CDs</span>
+      </div>
+      <div class="library-grid" id="libraryGrid"></div>
+
+      <!-- CD Detail Modal -->
+      <div id="cdModal" class="modal" style="display:none">
+        <div class="modal-content">
+          <div class="modal-header">
+            <span id="cdModalTitle"></span>
+            <button class="modal-close" onclick="closeCdModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="cd-detail-row">
+              <img id="cdModalCover" class="cd-detail-cover" src="" alt="" style="display:none">
+              <div class="cd-detail-meta">
+                <div><strong id="cdModalArtist"></strong></div>
+                <div id="cdModalYear"></div>
+                <div id="cdModalGenre"></div>
+                <div id="cdModalSlot"></div>
+              </div>
+            </div>
+            <div class="cd-detail-tracks" id="cdModalTracks"></div>
+            <div class="cd-detail-actions">
+              <button class="btn btn-accent" onclick="loadCdFromModal(1)" data-i18n="library.loadP1">Player 1 laden</button>
+              <button class="btn btn-accent" onclick="loadCdFromModal(2)" data-i18n="library.loadP2">Player 2 laden</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Playlists Sub-View -->
+    <div id="sub-playlists" class="sub-content" style="display:none">
+      <div class="playlist-toolbar">
+        <button class="btn btn-accent" onclick="loadPlaylists()" data-i18n="playlists.refresh">Aktualisieren</button>
+      </div>
+      <div id="playlistList" class="playlist-list"></div>
+    </div>
+
+    <!-- Scanner Sub-View -->
+    <div id="sub-scanner" class="sub-content" style="display:none">
+      <div class="scanner-controls">
+        <div class="scan-row">
+          <label data-i18n="scanner.range">Bereich:</label>
+          <input type="number" id="scanStart" class="form-input scan-input" value="1" min="1">
+          <span>&ndash;</span>
+          <input type="number" id="scanEnd" class="form-input scan-input" value="300" min="1">
+          <button class="btn btn-accent" onclick="startScan()" data-i18n="scanner.start">Scan starten</button>
+          <button class="btn btn-dim" onclick="abortScan()" data-i18n="scanner.abort">Abbrechen</button>
+        </div>
+        <div class="scan-progress" id="scanProgress" style="display:none">
+          <div class="progress-bar"><div class="progress-fill" id="scanFill"></div></div>
+          <div class="progress-text" id="scanText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Settings Tab ── -->
+<div id="tab-settings" class="tab-content" style="display:none">
+  <div class="settings-section">
+    <div class="card-title" data-i18n="settings.nodesTitle">Nodes verwalten</div>
+
+    <div id="nodeList" class="node-list"></div>
+
+    <div class="add-node-form">
+      <div class="card-title" style="margin-top:16px" data-i18n="settings.addNode">Node hinzufuegen</div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="settings.nodeUrl">URL</label>
+        <input type="text" id="addNodeUrl" class="form-input" placeholder="http://192.168.1.100:3000">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="settings.nodeApiKey">API-Key</label>
+        <input type="text" id="addNodeApiKey" class="form-input" placeholder="API-Key des Nodes">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="settings.nodeName">Name</label>
+        <input type="text" id="addNodeName" class="form-input" placeholder="z.B. Wohnzimmer"
+               data-i18n-placeholder="settings.nodeNamePh">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="settings.nodeRoom">Raum</label>
+        <input type="text" id="addNodeRoom" class="form-input" placeholder="z.B. EG Wohnzimmer"
+               data-i18n-placeholder="settings.nodeRoomPh">
+      </div>
+      <div class="form-row">
+        <button class="btn btn-dim" onclick="testNodeConnection()" data-i18n="settings.testConnection">Verbindung testen</button>
+        <button class="btn btn-accent" onclick="addNode()" data-i18n="settings.addBtn">Hinzufuegen</button>
+      </div>
+      <div id="testResult" class="test-result" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="card-title" data-i18n="settings.hubTitle">Hub-Einstellungen</div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="settings.hubName">Hub-Name</label>
+      <input type="text" id="settHubName" class="form-input" value="">
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="settings.hubPort">Port</label>
+      <input type="number" id="settHubPort" class="form-input" value="4000">
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="settings.language">Sprache</label>
+      <select id="settLanguage" class="form-input">
+        <option value="auto">Auto</option>
+        <option value="de">Deutsch</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+    <button class="btn btn-accent" onclick="saveHubSettings()" data-i18n="settings.save">Speichern</button>
+  </div>
+</div>
+
+<!-- ── Connection indicator ── -->
+<div id="wsStatus" class="ws-status disconnected">
+  <span class="ws-dot"></span>
+  <span id="wsStatusText" data-i18n="status.disconnected">Getrennt</span>
+</div>
+
+<script src="js/i18n.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
