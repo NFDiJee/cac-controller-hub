@@ -87,7 +87,7 @@ export function createRoutes(nodeManager) {
 
   router.all('/api/nodes/:id/proxy/{*path}', async (req, res) => {
     const nodeId = parseInt(req.params.id);
-    const path = req.params.path;
+    const path = Array.isArray(req.params.path) ? req.params.path.join('/') : req.params.path;
 
     try {
       const result = await nodeManager.proxyRequest(nodeId, req.method, path, req.body);
@@ -101,7 +101,7 @@ export function createRoutes(nodeManager) {
 
   router.get('/api/nodes/:id/cover/{*path}', async (req, res) => {
     const nodeId = parseInt(req.params.id);
-    const coverPath = 'covers/' + req.params.path;
+    const coverPath = 'covers/' + (Array.isArray(req.params.path) ? req.params.path.join('/') : req.params.path);
 
     try {
       const result = await nodeManager.proxyBinary(nodeId, coverPath);
