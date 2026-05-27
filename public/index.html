@@ -173,36 +173,6 @@
         <span class="lib-count" id="libCount">0 CDs</span>
       </div>
       <div class="library-grid" id="libraryGrid"></div>
-
-      <!-- CD Detail Modal -->
-      <div id="cdModal" class="modal" style="display:none">
-        <div class="modal-content">
-          <div class="modal-header">
-            <span id="cdModalTitle"></span>
-            <button class="modal-close" onclick="closeCdModal()">&times;</button>
-          </div>
-          <div class="modal-body">
-            <div class="cd-detail-row">
-              <img id="cdModalCover" class="cd-detail-cover" src="" alt="" style="display:none">
-              <div class="cd-detail-meta">
-                <div><strong id="cdModalArtist"></strong></div>
-                <div id="cdModalYear"></div>
-                <div id="cdModalGenre"></div>
-                <div id="cdModalSlot"></div>
-              </div>
-            </div>
-            <div class="cd-modal-rating-row">
-              <div class="star-rating" id="cdModalStars"></div>
-              <button class="btn-icon btn-fav" id="cdModalFav" onclick="toggleModalCdFav()">&#9825;</button>
-            </div>
-            <div class="cd-detail-tracks" id="cdModalTracks"></div>
-            <div class="cd-detail-actions">
-              <button class="btn btn-accent" onclick="loadCdFromModal(1)" data-i18n="library.loadP1">Player 1 laden</button>
-              <button class="btn btn-accent" onclick="loadCdFromModal(2)" data-i18n="library.loadP2">Player 2 laden</button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Favorites Sub-View -->
@@ -310,6 +280,36 @@
       </select>
     </div>
     <button class="btn btn-accent" onclick="saveHubSettings()" data-i18n="settings.save">Speichern</button>
+  </div>
+</div>
+
+<!-- ── CD Detail Modal ── -->
+<div id="cdModal" class="modal" style="display:none">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span id="cdModalTitle"></span>
+      <button class="modal-close" onclick="closeCdModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="cd-detail-row">
+        <img id="cdModalCover" class="cd-detail-cover" src="" alt="" style="display:none">
+        <div class="cd-detail-meta">
+          <div><strong id="cdModalArtist"></strong></div>
+          <div id="cdModalYear"></div>
+          <div id="cdModalGenre"></div>
+          <div id="cdModalSlot"></div>
+        </div>
+      </div>
+      <div class="cd-modal-rating-row">
+        <div class="star-rating" id="cdModalStars"></div>
+        <button class="btn-icon btn-fav" id="cdModalFav" onclick="toggleModalCdFav()">&#9825;</button>
+      </div>
+      <div class="cd-detail-tracks" id="cdModalTracks"></div>
+      <div class="cd-detail-actions">
+        <button class="btn btn-accent" onclick="loadCdFromModal(1)" data-i18n="library.loadP1">Player 1 laden</button>
+        <button class="btn btn-accent" onclick="loadCdFromModal(2)" data-i18n="library.loadP2">Player 2 laden</button>
+      </div>
+    </div>
   </div>
 </div>
 

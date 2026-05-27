@@ -620,8 +620,12 @@ function renderFavorites() {
       const tr = cd?.tracks?.find(t => t.track_number === f.track_number);
       const title = tr?.title || `Track ${f.track_number}`;
       const cdTitle = cd?.title || `CD ${f.slot}`;
+      const coverUrl = cd?.cover_url
+        ? `/api/nodes/${selectedNodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}`
+        : '';
       return `
-        <div class="fav-item" onclick="playTrack(1, ${f.slot}, ${f.track_number})">
+        <div class="fav-item" onclick="openCdModal(${f.slot})">
+          ${coverUrl ? `<img class="fav-cover" src="${coverUrl}" alt="">` : `<div class="fav-cover fav-no-cover">${f.slot}</div>`}
           <div class="fav-meta">
             <div class="fav-title">${esc(title)}</div>
             <div class="fav-artist">${esc(cdTitle)} &middot; Slot ${f.slot} &middot; Track ${f.track_number}</div>
@@ -685,8 +689,12 @@ function renderRatings() {
       const tr = cd?.tracks?.find(t => t.track_number === r.track_number);
       const title = tr?.title || `Track ${r.track_number}`;
       const cdTitle = cd?.title || `CD ${r.slot}`;
+      const coverUrl = cd?.cover_url
+        ? `/api/nodes/${selectedNodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}`
+        : '';
       return `
-        <div class="fav-item" onclick="playTrack(1, ${r.slot}, ${r.track_number})">
+        <div class="fav-item" onclick="openCdModal(${r.slot})">
+          ${coverUrl ? `<img class="fav-cover" src="${coverUrl}" alt="">` : `<div class="fav-cover fav-no-cover">${r.slot}</div>`}
           <div class="fav-meta">
             <div class="fav-title">${esc(title)}</div>
             <div class="fav-artist">${esc(cdTitle)} &middot; Slot ${r.slot} &middot; Track ${r.track_number}</div>
@@ -944,16 +952,17 @@ async function scanSingle() {
   if (!selectedNodeId) return;
   const slot = parseInt(document.getElementById('scanSlot').value) || 1;
   try {
-    await proxyPost('scanner/scan', { slot });
     document.getElementById('scanProgress').style.display = 'block';
     document.getElementById('scanText').textContent = `${t('scanner.scanning')} ${slot}...`;
     document.getElementById('scanFill').style.width = '50%';
-    // Reload after a delay (single scan is synchronous)
-    setTimeout(async () => {
-      await loadLibrary();
-      await loadNodeRatings(selectedNodeId);
-      document.getElementById('scanProgress').style.display = 'none';
-    }, 2000);
+    const result = await proxyPost('scanner/scan', { slot });
+    await loadLibrary();
+    await loadNodeRatings(selectedNodeId);
+    document.getElementById('scanFill').style.width = '100%';
+    document.getElementById('scanText').textContent = `${t('scanner.complete')} — Slot ${slot}`;
+    setTimeout(() => { document.getElementById('scanProgress').style.display = 'none'; }, 2000);
+    // Auto-trigger MusicBrainz lookup after scan
+    lookupBrainz();
   } catch {}
 }
 
@@ -996,26 +1005,34 @@ async function lookupBrainz() {
   // Get CD info for search
   const lib = nodeLibrary[selectedNodeId] || [];
   const cd = lib.find(c => c.slot === slot);
-  const query = cd ? `${cd.artist || ''} ${cd.title || ''}`.trim() : `Slot ${slot}`;
+  const query = cd ? `${cd.artist || ''} ${cd.title || ''}`.trim() : '';
 
-  if (!query || query === `Slot ${slot}`) {
-    // Try searching by disc_id
-    try {
-      const cdData = await proxyGet(`library/${slot}`);
-      if (cdData?.disc_id) {
-        const results = await proxyGet(`musicbrainz/search?q=${encodeURIComponent(cdData.disc_id)}`);
+  // Try disc_id first (most accurate for MusicBrainz)
+  try {
+    const cdData = await proxyGet(`library/${slot}`);
+    if (cdData?.disc_id) {
+      const results = await proxyGet(`musicbrainz/search?q=${encodeURIComponent(cdData.disc_id)}`);
+      if (results && results.length > 0) {
         showBrainzResults(slot, results);
         return;
       }
-    } catch {}
+    }
+  } catch {}
+
+  // Fallback to artist+title search
+  if (query) {
+    try {
+      const results = await proxyGet(`musicbrainz/search?q=${encodeURIComponent(query)}`);
+      showBrainzResults(slot, results);
+      return;
+    } catch (err) {
+      alert('MusicBrainz: ' + err.message);
+      return;
+    }
   }
 
-  try {
-    const results = await proxyGet(`musicbrainz/search?q=${encodeURIComponent(query)}`);
-    showBrainzResults(slot, results);
-  } catch (err) {
-    alert('MusicBrainz: ' + err.message);
-  }
+  // Nothing to search with — show empty results
+  showBrainzResults(slot, []);
 }
 
 function showBrainzResults(slot, results) {
