@@ -96,6 +96,8 @@ function handleWsMessage(msg) {
         nodes[n.id] = n;
       }
       renderDashboard();
+      // Pre-load library for all connected nodes (for disc titles on dashboard)
+      preloadAllLibraries();
       break;
 
     case 'nodeOnline':
@@ -194,8 +196,8 @@ function buildNodeCard(n) {
       </div>
       <div class="node-card-model">${esc(n.model || st.model || '')}</div>
       <div class="node-card-players">
-        ${buildMiniPlayer(1, p1)}
-        ${buildMiniPlayer(2, p2)}
+        ${buildMiniPlayer(1, p1, n.id)}
+        ${buildMiniPlayer(2, p2, n.id)}
       </div>
       <div class="node-card-controls" onclick="event.stopPropagation()">
         <button class="mini-ctrl-btn" onclick="quickCmd(${n.id},1,'play')" title="Play P1">&#9654;</button>
@@ -206,12 +208,15 @@ function buildNodeCard(n) {
     </div>`;
 }
 
-function buildMiniPlayer(pid, state) {
+function buildMiniPlayer(pid, state, nodeId) {
   const mode = state.mode || '';
   const modeLabel = t(PLAYER_MODES[mode] || 'mode.unknown');
   const modeClass = mode === 'P04' ? 'playing' : mode === 'P06' ? 'paused' :
                     (mode === 'P21' || mode === 'P22') ? 'loading' : 'stopped';
-  const disc = state.disc && state.disc !== 'XXX' ? `Disc ${state.disc}` : t('player.noDisc');
+  const discNum = state.disc && state.disc !== 'XXX' ? parseInt(state.disc) : null;
+  const lib = nodeId ? (nodeLibrary[nodeId] || []) : [];
+  const cd = discNum ? lib.find(c => c.slot === discNum) : null;
+  const disc = cd && cd.title ? esc(cd.title) : (discNum ? `Disc ${discNum}` : t('player.noDisc'));
   const track = state.track && state.track !== 'XX' ? `Tr ${state.track}` : '';
 
   return `
@@ -239,7 +244,7 @@ function updateNodeCard(nodeId) {
   const st = n.state || {};
   const playersDiv = card.querySelector('.node-card-players');
   if (playersDiv) {
-    playersDiv.innerHTML = buildMiniPlayer(1, st.players?.[1] || {}) + buildMiniPlayer(2, st.players?.[2] || {});
+    playersDiv.innerHTML = buildMiniPlayer(1, st.players?.[1] || {}, nodeId) + buildMiniPlayer(2, st.players?.[2] || {}, nodeId);
   }
 }
 
@@ -408,6 +413,24 @@ async function toggleShuffle() {
 }
 
 // ── Library ──
+
+async function preloadAllLibraries() {
+  for (const n of Object.values(nodes)) {
+    if (n.connected && !nodeLibrary[n.id]) {
+      preloadNodeLibrary(n.id);
+    }
+  }
+}
+
+async function preloadNodeLibrary(nodeId) {
+  try {
+    const resp = await fetch(`/api/nodes/${nodeId}/proxy/library`);
+    if (!resp.ok) return;
+    nodeLibrary[nodeId] = await resp.json();
+    updateNodeCard(nodeId);
+    if (selectedNodeId === nodeId) updatePlayerUI();
+  } catch {}
+}
 
 async function loadLibrary() {
   if (!selectedNodeId) return;
