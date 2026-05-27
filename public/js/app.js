@@ -11,7 +11,7 @@ let currentCdSlot = null;
 const PLAYER_MODES = {
   P01: 'mode.park', P02: 'mode.setup', P03: 'mode.reject',
   P04: 'mode.play', P06: 'mode.pause', P07: 'mode.search',
-  P08: 'mode.scan', P20: 'mode.discUnset', P21: 'mode.loading',
+  P08: 'mode.scan', P20: 'player.discUnset', P21: 'mode.loading',
   P22: 'mode.unloading',
 };
 
@@ -1123,7 +1123,8 @@ function openEditNodeModal(nodeId) {
   document.getElementById('editNodeId').value = nodeId;
   document.getElementById('editNodeName').value = node.name || '';
   document.getElementById('editNodeUrl').value = node.url || '';
-  document.getElementById('editNodeApiKey').value = node.api_key || '';
+  document.getElementById('editNodeApiKey').value = '';
+  document.getElementById('editNodeApiKey').placeholder = node.api_key ? '••••••••' : '';
   document.getElementById('editNodeRoom').value = node.room || '';
   document.getElementById('editNodeModal').style.display = 'flex';
 }
@@ -1136,10 +1137,13 @@ async function saveNodeEdit() {
   const nodeId = parseInt(document.getElementById('editNodeId').value);
   const data = {
     name: document.getElementById('editNodeName').value.trim(),
-    url: document.getElementById('editNodeUrl').value.trim(),
-    api_key: document.getElementById('editNodeApiKey').value.trim(),
     room: document.getElementById('editNodeRoom').value.trim(),
   };
+  // Only send url/api_key if user actually entered a value (don't overwrite with empty)
+  const newUrl = document.getElementById('editNodeUrl').value.trim();
+  const newApiKey = document.getElementById('editNodeApiKey').value.trim();
+  if (newUrl) data.url = newUrl;
+  if (newApiKey) data.api_key = newApiKey;
   try {
     const resp = await fetch(`/api/nodes/${nodeId}`, {
       method: 'PUT',
