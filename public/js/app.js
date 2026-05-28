@@ -473,6 +473,7 @@ function renderTrackList(pid, cd, activeTrack) {
       <button class="btn-icon btn-fav-sm${isFav ? ' active' : ''}" onclick="toggleFavItem(${cd.slot}, ${tr.track_number})">
         ${isFav ? '&#9829;' : '&#9825;'}
       </button>
+      <button class="btn-icon btn-playlist-sm" onclick="event.stopPropagation();quickAddTrackToPlaylist(${cd.slot}, ${tr.track_number})" title="${t('library.addToPlaylist')}">+</button>
       <span class="track-dur">${formatSeconds(tr.duration_seconds)}</span>
     </div>`;
   }).join('');
@@ -967,13 +968,23 @@ async function loadCdTrack(slot, track) {
 
 // ── Playlists ──
 
-let nodePlaylists = {}; // nodeId -> [playlist, ...]
+let nodePlaylists = {}; // nodeId -> [playlist with items, ...]
 
 async function loadPlaylists() {
   if (!selectedNodeId) return;
   try {
-    const data = await proxyGet('playlists');
-    nodePlaylists[selectedNodeId] = data || [];
+    // GET /playlists returns list without items, so fetch each individually
+    const list = await proxyGet('playlists');
+    const detailed = [];
+    for (const pl of (list || [])) {
+      try {
+        const full = await proxyGet(`playlists/${pl.id}`);
+        detailed.push(full);
+      } catch {
+        detailed.push({ ...pl, items: [] });
+      }
+    }
+    nodePlaylists[selectedNodeId] = detailed;
     renderPlaylists();
   } catch {
     nodePlaylists[selectedNodeId] = [];
@@ -988,17 +999,20 @@ function renderPlaylists() {
     el.innerHTML = `<div class="empty-state" style="padding:20px">${t('playlists.empty')}</div>`;
     return;
   }
-  el.innerHTML = data.map(pl => `
+  el.innerHTML = data.map(pl => {
+    const count = pl.items?.length || 0;
+    return `
     <div class="playlist-item" onclick="openPlaylistDetail(${pl.id})">
       <div>
         <div class="playlist-name">${esc(pl.name)}</div>
-        <div class="playlist-count">${pl.items?.length || 0} ${t('playlists.items')}</div>
+        <div class="playlist-count">${count} ${t('playlists.items')}</div>
       </div>
       <div class="playlist-actions">
         <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();playPlaylist(${pl.id})">${t('playlists.play')}</button>
         <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deletePlaylist(${pl.id})">&times;</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function playPlaylist(id) {
@@ -1033,8 +1047,19 @@ async function openPlaylistDetail(id) {
 function showPlaylistDetailModal(pl) {
   const lib = nodeLibrary[selectedNodeId] || [];
   const items = pl.items || [];
+
+  // Calculate total duration
+  let totalSec = 0;
+  for (const item of items) {
+    const cd = lib.find(c => c.slot === item.slot);
+    const tr = cd?.tracks?.find(t => t.track_number === item.track_number);
+    if (tr?.duration_seconds) totalSec += tr.duration_seconds;
+  }
+  const totalDur = totalSec > 0 ? ` · ${formatSeconds(totalSec)}` : '';
+
   let html = `<div class="playlist-detail-header">
-    <strong>${esc(pl.name)}</strong> — ${items.length} ${t('playlists.items')}
+    <strong>${esc(pl.name)}</strong>
+    <span class="playlist-count">${items.length} ${t('playlists.items')}${totalDur}</span>
     <button class="btn btn-accent btn-sm" style="margin-left:auto" onclick="playPlaylist(${pl.id});closeBrainzModal()">${t('playlists.play')}</button>
   </div><div class="playlist-detail-items">`;
 
@@ -1043,11 +1068,33 @@ function showPlaylistDetailModal(pl) {
   } else {
     html += items.map((item, idx) => {
       const cd = lib.find(c => c.slot === item.slot);
-      const title = cd ? (cd.title || 'CD ' + item.slot) : 'Slot ' + item.slot;
-      const trackInfo = item.track_number ? ` — Track ${item.track_number}` : ' — alle Tracks';
+      const cdTitle = cd ? (cd.title || 'CD ' + item.slot) : 'Slot ' + item.slot;
+      const tr = cd?.tracks?.find(t => t.track_number === item.track_number);
+      // Use track_title from API if available, else look up in library
+      const trackTitle = item.track_title || tr?.title || '';
+      const trackName = trackTitle
+        ? `${trackTitle}`
+        : `Track ${item.track_number || '?'}`;
+      const dur = tr?.duration_seconds ? formatSeconds(tr.duration_seconds) : '';
+      const rating = getRating(selectedNodeId, item.slot, item.track_number || 0);
+      const isFav = isFavorite(selectedNodeId, item.slot, item.track_number || 0);
+
+      const coverSrc = cd?.cover_url
+        ? `/api/nodes/${selectedNodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}`
+        : '';
+
       return `<div class="playlist-detail-item">
         <span class="track-num">${idx + 1}</span>
-        <span class="track-name">${esc(title)}${trackInfo}</span>
+        ${coverSrc
+          ? `<img class="playlist-item-cover" src="${coverSrc}" alt="">`
+          : `<span class="playlist-item-no-cover">${item.slot}</span>`}
+        <div class="playlist-item-info">
+          <div class="playlist-item-track">${esc(trackName)}</div>
+          <div class="playlist-item-cd">${esc(cdTitle)} · Slot ${item.slot}</div>
+        </div>
+        ${rating ? `<span class="track-stars-sm">${'&#9733;'.repeat(rating)}</span>` : ''}
+        ${isFav ? '<span class="btn-fav-sm active">&#9829;</span>' : ''}
+        <span class="track-dur">${dur}</span>
         <button class="btn-icon btn-playlist-sm" onclick="removePlaylistItem(${pl.id}, ${item.id})" title="Entfernen">&times;</button>
       </div>`;
     }).join('');
@@ -1071,10 +1118,17 @@ async function removePlaylistItem(playlistId, itemId) {
 
 async function showAddToPlaylistMenu() {
   if (!selectedNodeId) return;
-  // Load playlists if not cached
-  if (!nodePlaylists[selectedNodeId]) {
-    try { nodePlaylists[selectedNodeId] = await proxyGet('playlists'); } catch { nodePlaylists[selectedNodeId] = []; }
-  }
+  // Always refresh playlist data
+  try {
+    const list = await proxyGet('playlists');
+    // Quick-fetch with item counts
+    const detailed = [];
+    for (const pl of (list || [])) {
+      try { detailed.push(await proxyGet(`playlists/${pl.id}`)); } catch { detailed.push({ ...pl, items: [] }); }
+    }
+    nodePlaylists[selectedNodeId] = detailed;
+  } catch { if (!nodePlaylists[selectedNodeId]) nodePlaylists[selectedNodeId] = []; }
+
   const playlists = nodePlaylists[selectedNodeId] || [];
   const listEl = document.getElementById('cdModalPlaylistList');
 

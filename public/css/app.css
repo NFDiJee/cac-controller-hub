@@ -774,12 +774,39 @@ body {
 .playlist-detail-item {
   display: flex;
   align-items: center;
-  padding: 5px 8px;
-  gap: 6px;
+  padding: 6px 8px;
+  gap: 8px;
   border-radius: 4px;
   font-size: 0.85rem;
 }
 .playlist-detail-item:hover { background: var(--accent-dim); }
+
+.playlist-item-cover {
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.playlist-item-no-cover {
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: 0.6rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.playlist-item-info { flex: 1; min-width: 0; }
+.playlist-item-track { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.playlist-item-cd { font-size: 0.75rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Track playlist add button */
 .btn-playlist-sm {
