@@ -1549,7 +1549,7 @@ async function createAndAddToPlaylist() {
 
 let nodeStatsData = null;
 let currentStatsTab = 'overview';
-let topListLimit = 25;
+let topListLimit = 10;
 let topListView = 'cds';
 let activityPeriod = 'daily';
 
