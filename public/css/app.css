@@ -631,7 +631,28 @@ body {
   object-fit: cover;
 }
 
-.cd-detail-meta { font-size: 0.9rem; line-height: 1.6; }
+.cd-detail-meta { font-size: 0.9rem; line-height: 1.6; flex: 1; min-width: 0; }
+
+.cd-edit-fields { margin-top: 8px; }
+
+.cd-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cd-edit-row label {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  min-width: 45px;
+  flex-shrink: 0;
+}
+
+.form-input-sm {
+  padding: 4px 8px;
+  font-size: 0.82rem;
+}
 
 .cd-modal-rating-row {
   display: flex;

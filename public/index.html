@@ -172,6 +172,9 @@
         <select id="libFilterGenre" class="form-input lib-filter-select" onchange="filterLibrary()">
           <option value="" data-i18n="library.allGenres">Alle Genres</option>
         </select>
+        <select id="libFilterLabel" class="form-input lib-filter-select" onchange="filterLibrary()">
+          <option value="" data-i18n="library.allLabels">Alle Labels</option>
+        </select>
         <select id="libFilterYear" class="form-input lib-filter-select" onchange="filterLibrary()">
           <option value="" data-i18n="library.allYears">Alle Jahre</option>
         </select>
@@ -283,9 +286,22 @@
         <img id="cdModalCover" class="cd-detail-cover" src="" alt="" style="display:none">
         <div class="cd-detail-meta">
           <div><strong id="cdModalArtist"></strong></div>
-          <div id="cdModalYear"></div>
-          <div id="cdModalGenre"></div>
           <div id="cdModalSlot"></div>
+          <div class="cd-edit-fields">
+            <div class="cd-edit-row">
+              <label data-i18n="library.genre">Genre</label>
+              <input type="text" id="cdModalGenreInput" class="form-input form-input-sm" placeholder="Genre">
+            </div>
+            <div class="cd-edit-row">
+              <label data-i18n="library.label">Label</label>
+              <input type="text" id="cdModalLabelInput" class="form-input form-input-sm" placeholder="Label">
+            </div>
+            <div class="cd-edit-row">
+              <label data-i18n="library.year">Jahr</label>
+              <input type="text" id="cdModalYearInput" class="form-input form-input-sm" placeholder="Year" style="width:80px">
+            </div>
+            <button class="btn btn-dim btn-sm" onclick="saveCdMeta()" data-i18n="settings.save">Speichern</button>
+          </div>
         </div>
       </div>
       <div class="cd-modal-rating-row">

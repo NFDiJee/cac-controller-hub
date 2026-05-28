@@ -821,6 +821,7 @@ function renderLibrary() {
   // Apply filters
   const query = (document.getElementById('libSearch').value || '').toLowerCase();
   const genreFilter = document.getElementById('libFilterGenre').value;
+  const labelFilter = document.getElementById('libFilterLabel').value;
   const yearFilter = document.getElementById('libFilterYear').value;
   const ratingFilter = parseInt(document.getElementById('libFilterRating').value) || 0;
 
@@ -829,6 +830,7 @@ function renderLibrary() {
         !(c.artist || '').toLowerCase().includes(query) &&
         !String(c.slot).includes(query)) return false;
     if (genreFilter && (c.genre || '') !== genreFilter) return false;
+    if (labelFilter && (c.label || '') !== labelFilter) return false;
     if (yearFilter && String(c.year || '') !== yearFilter) return false;
     if (ratingFilter) {
       const r = getRating(selectedNodeId, c.slot, 0);
@@ -864,26 +866,35 @@ function renderLibrary() {
 
 function populateLibraryFilters(lib) {
   const genreSelect = document.getElementById('libFilterGenre');
+  const labelSelect = document.getElementById('libFilterLabel');
   const yearSelect = document.getElementById('libFilterYear');
   const currentGenre = genreSelect.value;
+  const currentLabel = labelSelect.value;
   const currentYear = yearSelect.value;
 
-  // Collect unique genres and years
   const genres = new Set();
+  const labels = new Set();
   const years = new Set();
   for (const cd of lib) {
     if (cd.genre) genres.add(cd.genre);
+    if (cd.label) labels.add(cd.label);
     if (cd.year) years.add(String(cd.year));
   }
 
-  // Only rebuild if options changed
   const genreArr = [...genres].sort();
+  const labelArr = [...labels].sort();
   const yearArr = [...years].sort().reverse();
 
   if (genreSelect.options.length !== genreArr.length + 1) {
     genreSelect.innerHTML = `<option value="">${t('library.allGenres')}</option>` +
       genreArr.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('');
     genreSelect.value = currentGenre;
+  }
+
+  if (labelSelect.options.length !== labelArr.length + 1) {
+    labelSelect.innerHTML = `<option value="">${t('library.allLabels')}</option>` +
+      labelArr.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+    labelSelect.value = currentLabel;
   }
 
   if (yearSelect.options.length !== yearArr.length + 1) {
@@ -918,9 +929,10 @@ function refreshCdModal() {
 
   document.getElementById('cdModalTitle').textContent = cd.title || 'CD ' + slot;
   document.getElementById('cdModalArtist').textContent = cd.artist || '';
-  document.getElementById('cdModalYear').textContent = cd.year || '';
-  document.getElementById('cdModalGenre').textContent = cd.genre || '';
   document.getElementById('cdModalSlot').textContent = 'Slot ' + slot;
+  document.getElementById('cdModalGenreInput').value = cd.genre || '';
+  document.getElementById('cdModalLabelInput').value = cd.label || '';
+  document.getElementById('cdModalYearInput').value = cd.year || '';
 
   const cover = document.getElementById('cdModalCover');
   if (cd.cover_url) {
@@ -964,6 +976,30 @@ function refreshCdModal() {
 function closeCdModal() {
   document.getElementById('cdModal').style.display = 'none';
   currentCdSlot = null;
+}
+
+async function saveCdMeta() {
+  if (!currentCdSlot || !selectedNodeId) return;
+  const data = {
+    genre: document.getElementById('cdModalGenreInput').value.trim() || null,
+    label: document.getElementById('cdModalLabelInput').value.trim() || null,
+    year: document.getElementById('cdModalYearInput').value.trim() || null,
+  };
+  try {
+    await proxyPut(`library/${currentCdSlot}`, data);
+    // Update local cache
+    const lib = nodeLibrary[selectedNodeId] || [];
+    const cd = lib.find(c => c.slot === currentCdSlot);
+    if (cd) {
+      if (data.genre !== null) cd.genre = data.genre;
+      if (data.label !== null) cd.label = data.label;
+      if (data.year !== null) cd.year = data.year;
+    }
+    showToast(t('settings.saved'));
+    renderLibrary();
+  } catch (err) {
+    console.error('Save CD meta failed:', err);
+  }
 }
 
 async function loadCdFromModal(playerId) {
@@ -1050,12 +1086,12 @@ function renderPlaylists() {
 
     return `
     <div class="playlist-item" onclick="openPlaylistDetail(${pl.id})">
-      ${coversHtml}
       <div class="playlist-item-meta">
         <div class="playlist-name">${esc(pl.name)}</div>
         <div class="playlist-count">${count} ${t('playlists.items')}${durStr}</div>
         ${dateStr ? `<div class="playlist-date">${dateStr}</div>` : ''}
       </div>
+      ${coversHtml}
       <div class="playlist-actions">
         <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();playPlaylist(${pl.id})">${t('playlists.play')}</button>
         <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deletePlaylist(${pl.id})">&times;</button>
