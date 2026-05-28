@@ -56,7 +56,7 @@ The Hub collects state information from all nodes and forwards it to Hub UI clie
 
 ### 1.3 Full Remote Access
 
-Via the Proxy API, the Hub has **full access** to every function of each node: player control, library CRUD, playlists, scanner, MusicBrainz search, favorites, ratings, history, settings — everything.
+Via the Proxy API, the Hub has **full access** to every function of each node: player control, library CRUD, playlists, scanner, MusicBrainz search, favorites, ratings, history, statistics, backup/restore, settings — everything.
 
 ### 1.4 API Key Authentication
 
@@ -224,11 +224,18 @@ Full control of a selected node with four sub-tabs:
 - Start/abort scan
 - Live progress bar via WebSocket
 
+**Statistics:**
+- Top tracks (with cover images via proxy), top CDs, top artists
+- Genre distribution and activity chart
+- Reload button for refreshing data
+- Data is loaded from the selected node via the proxy API
+
 ### 3.3 Settings
 
 - **Manage nodes**: List of all nodes with status, delete button
 - **Add node**: Enter URL, API key, name, room; connection test; auto-fill of name/room/model
 - **Hub settings**: Name, port, language
+- **Backup**: Export and import full node database as JSON (requires a selected node)
 
 ### 3.4 Internationalization
 

@@ -33,6 +33,8 @@ The CAC Hub is a Node.js web application that connects via REST API and WebSocke
 - **Dashboard** — All changers at a glance with live status
 - **Centralized Control** — Operate player, library, playlists, and scanner of each node
 - **Real-time Updates** — WebSocket events from all nodes are aggregated and displayed live
+- **Statistics** — Top tracks with covers, top CDs, top artists, genre distribution, and activity charts per node
+- **Backup / Restore** — Full database export and import for each node
 - **Proxy API** — All node functions are accessible through the Hub with automatic API key authentication
 
 ### Architecture

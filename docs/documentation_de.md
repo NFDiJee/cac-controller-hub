@@ -56,7 +56,7 @@ Der Hub sammelt Zustandsinformationen von allen Nodes und leitet sie an die Hub-
 
 ### 1.3 Vollstaendiger Fernzugriff
 
-Ueber die Proxy-API hat der Hub **vollen Zugriff** auf alle Funktionen jedes Nodes: Player-Steuerung, Library-CRUD, Playlists, Scanner, MusicBrainz-Suche, Favoriten, Bewertungen, History, Einstellungen — alles.
+Ueber die Proxy-API hat der Hub **vollen Zugriff** auf alle Funktionen jedes Nodes: Player-Steuerung, Library-CRUD, Playlists, Scanner, MusicBrainz-Suche, Favoriten, Bewertungen, History, Statistiken, Backup/Restore, Einstellungen — alles.
 
 ### 1.4 API-Key-Authentifizierung
 
@@ -224,11 +224,18 @@ Vollstaendige Steuerung eines ausgewaehlten Nodes mit vier Sub-Tabs:
 - Scan starten / abbrechen
 - Live-Fortschrittsbalken via WebSocket
 
+**Statistiken:**
+- Top-Tracks (mit Cover-Bildern via Proxy), Top-CDs, Top-Kuenstler
+- Genre-Verteilung und Aktivitaets-Diagramm
+- Reload-Button zum Aktualisieren
+- Daten werden vom ausgewaehlten Node ueber die Proxy-API geladen
+
 ### 3.3 Einstellungen
 
 - **Nodes verwalten**: Liste aller Nodes mit Status, Loeschen-Button
 - **Node hinzufuegen**: URL, API-Key, Name, Raum eingeben; Verbindungstest; Auto-Fill von Name/Raum/Modell
 - **Hub-Einstellungen**: Name, Port, Sprache
+- **Backup**: Export und Import der vollstaendigen Node-Datenbank als JSON (erfordert ausgewaehlten Node)
 
 ### 3.4 Internationalisierung
 

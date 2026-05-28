@@ -42,6 +42,8 @@ Each node runs the standalone [CAC Controller](https://github.com/NFDiJee/cac-co
 - **Library browser** — Search, browse, and load CDs from any node
 - **Playlists** — View and start playlists on any node
 - **Scanner** — Start/abort CD scans remotely with live progress
+- **Statistics** — Play statistics per node with top tracks (with covers), top CDs, top artists, genre distribution, and activity charts
+- **Backup / Restore** — Export and import full node database backups via the Hub
 - **Direct link** to each node's full web interface for advanced features
 
 ### Management
