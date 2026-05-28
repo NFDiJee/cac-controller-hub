@@ -87,7 +87,9 @@ export function createRoutes(nodeManager) {
 
   router.all('/api/nodes/:id/proxy/{*path}', async (req, res) => {
     const nodeId = parseInt(req.params.id);
-    const path = Array.isArray(req.params.path) ? req.params.path.join('/') : req.params.path;
+    let path = Array.isArray(req.params.path) ? req.params.path.join('/') : req.params.path;
+    const fullUrl = new URL(req.originalUrl, 'http://localhost');
+    if (fullUrl.search) path += fullUrl.search;
 
     try {
       const result = await nodeManager.proxyRequest(nodeId, req.method, path, req.body);
