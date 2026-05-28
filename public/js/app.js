@@ -1016,6 +1016,8 @@ function renderPlaylists() {
 }
 
 async function playPlaylist(id) {
+  // Stop any currently running playlist first
+  try { await proxyPost('playlists/stop'); } catch {}
   await proxyPost(`playlists/${id}/play`);
 }
 
@@ -1209,32 +1211,101 @@ async function addTrackToPlaylist(playlistId, slot, trackNumber) {
 
 async function quickAddTrackToPlaylist(slot, trackNumber) {
   if (!selectedNodeId) return;
-  // If only one playlist exists, add directly. Otherwise show picker.
-  if (!nodePlaylists[selectedNodeId]) {
-    try { nodePlaylists[selectedNodeId] = await proxyGet('playlists'); } catch { nodePlaylists[selectedNodeId] = []; }
+  // Always refresh playlists
+  try {
+    const list = await proxyGet('playlists');
+    const detailed = [];
+    for (const pl of (list || [])) {
+      try { detailed.push(await proxyGet(`playlists/${pl.id}`)); } catch { detailed.push({ ...pl, items: [] }); }
+    }
+    nodePlaylists[selectedNodeId] = detailed;
+  } catch {
+    if (!nodePlaylists[selectedNodeId]) nodePlaylists[selectedNodeId] = [];
   }
+  // Show the floating picker
+  showPlaylistPicker(slot, trackNumber);
+}
+
+function showPlaylistPicker(slot, trackNumber) {
+  // Remove any existing picker
+  closePlaylistPicker();
+
   const playlists = nodePlaylists[selectedNodeId] || [];
-  if (playlists.length === 0) {
-    const name = prompt(t('playlists.newName'));
+
+  const overlay = document.createElement('div');
+  overlay.id = 'playlistPickerOverlay';
+  overlay.className = 'picker-overlay';
+  overlay.onclick = (e) => { if (e.target === overlay) closePlaylistPicker(); };
+
+  const menu = document.createElement('div');
+  menu.className = 'picker-menu';
+
+  let html = `<div class="picker-header">${t('playlists.addTo')}</div>`;
+
+  if (playlists.length > 0) {
+    html += playlists.map(pl => {
+      const count = pl.items?.length || 0;
+      return `<div class="picker-item" data-pl-id="${pl.id}">
+        <span class="picker-item-name">${esc(pl.name)}</span>
+        <span class="picker-item-count">${count}</span>
+      </div>`;
+    }).join('');
+  }
+
+  html += `<div class="picker-divider"></div>
+    <div class="picker-new">
+      <input type="text" class="form-input picker-new-input" id="pickerNewName" placeholder="${t('playlists.newName')}">
+      <button class="btn btn-accent btn-sm" id="pickerCreateBtn">${t('playlists.create')}</button>
+    </div>`;
+
+  menu.innerHTML = html;
+  overlay.appendChild(menu);
+  document.body.appendChild(overlay);
+
+  // Attach click handlers
+  menu.querySelectorAll('.picker-item').forEach(el => {
+    el.onclick = async () => {
+      const plId = parseInt(el.dataset.plId);
+      closePlaylistPicker();
+      await addTrackToPlaylist(plId, slot, trackNumber);
+      showToast(t('playlists.added'));
+    };
+  });
+
+  document.getElementById('pickerCreateBtn').onclick = async () => {
+    const name = document.getElementById('pickerNewName').value.trim();
     if (!name) return;
     const pl = await proxyPost('playlists', { name });
-    await proxyPost(`playlists/${pl.id}/items`, { slot, track: trackNumber });
-    nodePlaylists[selectedNodeId] = await proxyGet('playlists');
-    return;
-  }
-  if (playlists.length === 1) {
-    await addTrackToPlaylist(playlists[0].id, slot, trackNumber);
-    return;
-  }
-  // Multiple playlists — show a simple picker
-  const picked = prompt(
-    playlists.map((pl, i) => `${i + 1}. ${pl.name}`).join('\n') + '\n\n' + t('playlists.pickNumber'),
-    '1'
-  );
-  const idx = parseInt(picked) - 1;
-  if (idx >= 0 && idx < playlists.length) {
-    await addTrackToPlaylist(playlists[idx].id, slot, trackNumber);
-  }
+    closePlaylistPicker();
+    await addTrackToPlaylist(pl.id, slot, trackNumber);
+    // Refresh cache
+    try {
+      const list = await proxyGet('playlists');
+      const detailed = [];
+      for (const p of (list || [])) {
+        try { detailed.push(await proxyGet(`playlists/${p.id}`)); } catch { detailed.push({ ...p, items: [] }); }
+      }
+      nodePlaylists[selectedNodeId] = detailed;
+    } catch {}
+    showToast(t('playlists.added'));
+  };
+
+  // Focus the input
+  setTimeout(() => document.getElementById('pickerNewName')?.focus(), 100);
+}
+
+function closePlaylistPicker() {
+  const el = document.getElementById('playlistPickerOverlay');
+  if (el) el.remove();
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 2000);
 }
 
 async function createAndAddToPlaylist() {

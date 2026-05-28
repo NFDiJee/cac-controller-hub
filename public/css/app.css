@@ -845,6 +845,81 @@ body {
 }
 .btn-playlist-sm:hover { background: var(--accent-dim); border-color: var(--accent); }
 
+/* ── Playlist Picker Overlay ── */
+
+.picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.picker-menu {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 280px;
+  max-width: 360px;
+  max-height: 70vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.picker-header {
+  padding: 12px 14px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border);
+}
+
+.picker-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  transition: background 0.12s;
+}
+.picker-item:hover { background: var(--accent-dim); }
+
+.picker-item-name { flex: 1; }
+.picker-item-count { font-size: 0.75rem; color: var(--text-dim); margin-left: 8px; }
+
+.picker-divider { border-top: 1px solid var(--border); margin: 0; }
+
+.picker-new {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px;
+  align-items: center;
+}
+.picker-new-input { flex: 1; font-size: 0.85rem; padding: 6px 10px; }
+
+/* ── Toast ── */
+
+.toast {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--accent);
+  color: #000;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 400;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
 /* ── Scanner ── */
 
 .scanner-controls { padding: 8px 0; }
