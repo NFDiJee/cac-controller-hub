@@ -929,10 +929,11 @@ function refreshCdModal() {
 
   document.getElementById('cdModalTitle').textContent = cd.title || 'CD ' + slot;
   document.getElementById('cdModalArtist').textContent = cd.artist || '';
+  const infoParts = [cd.year, cd.genre, cd.label].filter(Boolean);
+  document.getElementById('cdModalInfo').textContent = infoParts.join(' · ');
   document.getElementById('cdModalSlot').textContent = 'Slot ' + slot;
-  document.getElementById('cdModalGenreInput').value = cd.genre || '';
-  document.getElementById('cdModalLabelInput').value = cd.label || '';
-  document.getElementById('cdModalYearInput').value = cd.year || '';
+  // Hide edit form when refreshing
+  document.getElementById('cdEditForm').style.display = 'none';
 
   const cover = document.getElementById('cdModalCover');
   if (cd.cover_url) {
@@ -978,12 +979,35 @@ function closeCdModal() {
   currentCdSlot = null;
 }
 
-async function saveCdMeta() {
+function toggleCdEdit() {
+  const form = document.getElementById('cdEditForm');
+  const isVisible = form.style.display !== 'none';
+  if (isVisible) {
+    form.style.display = 'none';
+    return;
+  }
+  // Populate edit fields from current CD data
+  const lib = nodeLibrary[selectedNodeId] || [];
+  const cd = lib.find(c => c.slot === currentCdSlot);
+  if (!cd) return;
+  document.getElementById('cdEditTitle').value = cd.title || '';
+  document.getElementById('cdEditArtist').value = cd.artist || '';
+  document.getElementById('cdEditYear').value = cd.year || '';
+  document.getElementById('cdEditGenre').value = cd.genre || '';
+  document.getElementById('cdEditLabel').value = cd.label || '';
+  document.getElementById('cdEditNotes').value = cd.notes || '';
+  form.style.display = 'block';
+}
+
+async function saveCdEdit() {
   if (!currentCdSlot || !selectedNodeId) return;
   const data = {
-    genre: document.getElementById('cdModalGenreInput').value.trim() || null,
-    label: document.getElementById('cdModalLabelInput').value.trim() || null,
-    year: document.getElementById('cdModalYearInput').value.trim() || null,
+    title: document.getElementById('cdEditTitle').value.trim() || null,
+    artist: document.getElementById('cdEditArtist').value.trim() || null,
+    year: document.getElementById('cdEditYear').value.trim() || null,
+    genre: document.getElementById('cdEditGenre').value.trim() || null,
+    label: document.getElementById('cdEditLabel').value.trim() || null,
+    notes: document.getElementById('cdEditNotes').value.trim() || null,
   };
   try {
     await proxyPut(`library/${currentCdSlot}`, data);
@@ -991,14 +1015,16 @@ async function saveCdMeta() {
     const lib = nodeLibrary[selectedNodeId] || [];
     const cd = lib.find(c => c.slot === currentCdSlot);
     if (cd) {
-      if (data.genre !== null) cd.genre = data.genre;
-      if (data.label !== null) cd.label = data.label;
-      if (data.year !== null) cd.year = data.year;
+      for (const [k, v] of Object.entries(data)) {
+        if (v !== null) cd[k] = v;
+      }
     }
-    showToast(t('settings.saved'));
+    document.getElementById('cdEditForm').style.display = 'none';
+    refreshCdModal();
     renderLibrary();
+    showToast(t('edit.saved'));
   } catch (err) {
-    console.error('Save CD meta failed:', err);
+    console.error('Save CD failed:', err);
   }
 }
 

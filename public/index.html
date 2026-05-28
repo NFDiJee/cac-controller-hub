@@ -290,22 +290,23 @@
         <img id="cdModalCover" class="cd-detail-cover" src="" alt="" style="display:none">
         <div class="cd-detail-meta">
           <div><strong id="cdModalArtist"></strong></div>
+          <div id="cdModalInfo"></div>
           <div id="cdModalSlot"></div>
-          <div class="cd-edit-fields">
-            <div class="cd-edit-row">
-              <label data-i18n="library.genre">Genre</label>
-              <input type="text" id="cdModalGenreInput" class="form-input form-input-sm" placeholder="Genre">
-            </div>
-            <div class="cd-edit-row">
-              <label data-i18n="library.label">Label</label>
-              <input type="text" id="cdModalLabelInput" class="form-input form-input-sm" placeholder="Label">
-            </div>
-            <div class="cd-edit-row">
-              <label data-i18n="library.year">Jahr</label>
-              <input type="text" id="cdModalYearInput" class="form-input form-input-sm" placeholder="Year" style="width:80px">
-            </div>
-            <button class="btn btn-dim btn-sm" onclick="saveCdMeta()" data-i18n="settings.save">Speichern</button>
-          </div>
+        </div>
+        <button class="btn btn-dim btn-sm" onclick="toggleCdEdit()" id="cdEditToggleBtn" data-i18n="library.edit">Bearbeiten</button>
+      </div>
+      <div id="cdEditForm" class="cd-edit-form" style="display:none">
+        <div class="cd-edit-grid">
+          <div class="form-group"><label class="form-label" data-i18n="edit.cdTitle">Titel</label><input type="text" id="cdEditTitle" class="form-input"></div>
+          <div class="form-group"><label class="form-label" data-i18n="edit.artist">Kuenstler</label><input type="text" id="cdEditArtist" class="form-input"></div>
+          <div class="form-group"><label class="form-label" data-i18n="library.year">Jahr</label><input type="text" id="cdEditYear" class="form-input" style="width:100px"></div>
+          <div class="form-group"><label class="form-label" data-i18n="library.genre">Genre</label><input type="text" id="cdEditGenre" class="form-input"></div>
+          <div class="form-group"><label class="form-label" data-i18n="library.label">Label</label><input type="text" id="cdEditLabel" class="form-input"></div>
+          <div class="form-group"><label class="form-label" data-i18n="edit.notes">Notizen</label><textarea id="cdEditNotes" class="form-input" rows="2"></textarea></div>
+        </div>
+        <div class="cd-edit-actions">
+          <button class="btn btn-accent btn-sm" onclick="saveCdEdit()" data-i18n="edit.save">Speichern</button>
+          <button class="btn btn-dim btn-sm" onclick="toggleCdEdit()" data-i18n="settings.cancel">Abbrechen</button>
         </div>
       </div>
       <div class="cd-modal-rating-row">

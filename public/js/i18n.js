@@ -54,6 +54,14 @@ const translations = {
     'library.genre': 'Genre',
     'library.label': 'Label',
     'library.year': 'Jahr',
+    'library.edit': 'Bearbeiten',
+
+    'edit.title': 'CD bearbeiten',
+    'edit.cdTitle': 'Titel',
+    'edit.artist': 'Kuenstler',
+    'edit.notes': 'Notizen',
+    'edit.save': 'Speichern',
+    'edit.saved': 'CD gespeichert',
 
     'favorites.empty': 'Keine Favoriten vorhanden.',
     'favorites.cds': 'CD-Favoriten',
@@ -170,6 +178,14 @@ const translations = {
     'library.genre': 'Genre',
     'library.label': 'Label',
     'library.year': 'Year',
+    'library.edit': 'Edit',
+
+    'edit.title': 'Edit CD',
+    'edit.cdTitle': 'Title',
+    'edit.artist': 'Artist',
+    'edit.notes': 'Notes',
+    'edit.save': 'Save',
+    'edit.saved': 'CD saved',
 
     'favorites.empty': 'No favorites yet.',
     'favorites.cds': 'CD Favorites',
