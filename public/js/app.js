@@ -1664,15 +1664,18 @@ function renderStatsToplist() {
   } else {
     const items = nodeStatsData.topTracks.slice(0, topListLimit);
     if (!items.length) return html + `<div class="empty-state">${t('stats.noData')}</div>`;
-    html += items.map((tr, i) => `
-      <div class="list-item" onclick="openCdModal(${tr.slot})" style="cursor:pointer">
+    html += items.map((tr, i) => {
+      const coverSrc = tr.cover_url ? `/api/nodes/${selectedNodeId}/cover/${tr.cover_url.replace(/^\/covers\//, '')}` : '';
+      return `<div class="list-item" onclick="openCdModal(${tr.slot})" style="cursor:pointer">
         <div class="top-rank">${i + 1}</div>
+        ${coverSrc ? `<img class="top-cover" src="${coverSrc}" alt="">` : `<div class="top-cover-ph">${tr.slot}</div>`}
         <div class="list-meta">
           <div class="list-primary">${esc(tr.track_title || 'Track ' + tr.track_number)}</div>
           <div class="list-secondary">${esc(tr.cd_artist || '')} · ${esc(tr.cd_title || 'CD ' + tr.slot)} · Track ${tr.track_number}</div>
         </div>
         <div class="top-count"><div class="top-count-val">${tr.play_count}x</div><div class="top-count-sub">${formatDate(tr.last_played)}</div></div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
   return html;
 }
