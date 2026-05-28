@@ -491,6 +491,12 @@ function renderTrackList(pid, cd, activeTrack) {
   }).join('');
 }
 
+function yearToYYYY(val) {
+  if (!val) return '';
+  const m = String(val).match(/(\d{4})/);
+  return m ? m[1] : '';
+}
+
 function formatSeconds(sec) {
   if (!sec || sec <= 0) return '0:00';
   const m = Math.floor(sec / 60);
@@ -831,7 +837,7 @@ function renderLibrary() {
         !String(c.slot).includes(query)) return false;
     if (genreFilter && (c.genre || '') !== genreFilter) return false;
     if (labelFilter && (c.label || '') !== labelFilter) return false;
-    if (yearFilter && String(c.year || '') !== yearFilter) return false;
+    if (yearFilter && yearToYYYY(c.year) !== yearFilter) return false;
     if (ratingFilter) {
       const r = getRating(selectedNodeId, c.slot, 0);
       if (r < ratingFilter) return false;
@@ -855,7 +861,7 @@ function renderLibrary() {
         <div class="lib-card-meta">
           <div class="lib-card-title">${esc(cd.title || 'CD ' + cd.slot)}</div>
           <div class="lib-card-artist">${esc(cd.artist || '')}</div>
-          <div class="lib-card-info">Slot ${cd.slot} · ${cd.total_tracks || '?'} Tracks
+          <div class="lib-card-info">Slot ${cd.slot}${yearToYYYY(cd.year) ? ' · ' + yearToYYYY(cd.year) : ''} · ${cd.total_tracks || '?'} Tracks
             ${rating ? ' · ' + '&#9733;'.repeat(rating) : ''}
             ${isFav ? ' &#9829;' : ''}
           </div>
@@ -878,7 +884,7 @@ function populateLibraryFilters(lib) {
   for (const cd of lib) {
     if (cd.genre) genres.add(cd.genre);
     if (cd.label) labels.add(cd.label);
-    if (cd.year) years.add(String(cd.year));
+    if (cd.year) { const m = String(cd.year).match(/(\d{4})/); if (m) years.add(m[1]); }
   }
 
   const genreArr = [...genres].sort();
@@ -929,7 +935,16 @@ function refreshCdModal() {
 
   document.getElementById('cdModalTitle').textContent = cd.title || 'CD ' + slot;
   document.getElementById('cdModalArtist').textContent = cd.artist || '';
-  const infoParts = [cd.year, cd.genre, cd.label].filter(Boolean);
+  const yearStr = yearToYYYY(cd.year);
+  const trackCount = cd.total_tracks || cd.tracks?.length || 0;
+  const totalDur = cd.total_duration_seconds ? formatSeconds(cd.total_duration_seconds) : '';
+  const infoParts = [
+    yearStr,
+    trackCount ? `${trackCount} Tracks` : null,
+    totalDur || null,
+    cd.genre,
+    cd.label,
+  ].filter(Boolean);
   document.getElementById('cdModalInfo').textContent = infoParts.join(' · ');
   document.getElementById('cdModalSlot').textContent = 'Slot ' + slot;
   // Hide edit form when refreshing
