@@ -52,6 +52,7 @@
       <button class="sub-nav-btn" data-sub="favorites" data-i18n="nav.favorites">Favoriten</button>
       <button class="sub-nav-btn" data-sub="ratings" data-i18n="nav.ratings">Bewertungen</button>
       <button class="sub-nav-btn" data-sub="playlists" data-i18n="nav.playlists">Playlists</button>
+      <button class="sub-nav-btn" data-sub="stats" data-i18n="nav.stats">Statistik</button>
     </div>
 
     <!-- Player Sub-View -->
@@ -212,6 +213,17 @@
         </div>
       </div>
       <div id="playlistList" class="playlist-list"></div>
+    </div>
+
+    <!-- Stats Sub-View -->
+    <div id="sub-stats" class="sub-content" style="display:none">
+      <div class="stats-tabs">
+        <button class="stats-tab active" onclick="showStatsTab('overview')" data-i18n="stats.overview">Uebersicht</button>
+        <button class="stats-tab" onclick="showStatsTab('toplist')" data-i18n="stats.toplist">Top-Listen</button>
+        <button class="stats-tab" onclick="showStatsTab('activity')" data-i18n="stats.activity">Aktivitaet</button>
+        <button class="stats-tab" onclick="showStatsTab('inventory')" data-i18n="stats.inventory">Inventar</button>
+      </div>
+      <div id="statsContent"></div>
     </div>
 
   </div>

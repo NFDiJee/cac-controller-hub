@@ -73,6 +73,7 @@ function initSubTabs() {
       if (btn.dataset.sub === 'favorites' && selectedNodeId) renderFavorites();
       if (btn.dataset.sub === 'ratings' && selectedNodeId) renderRatings();
       if (btn.dataset.sub === 'playlists' && selectedNodeId) loadPlaylists();
+      if (btn.dataset.sub === 'stats' && selectedNodeId) loadNodeStats();
     });
   });
 }
@@ -302,6 +303,7 @@ function selectNode(nodeId) {
   document.getElementById('sub-player').style.display = 'block';
   document.getElementById('sub-player').classList.add('active');
 
+  nodeStatsData = null;
   updatePlayerUI();
   loadPlayModes();
   loadLibrary();
@@ -1456,6 +1458,195 @@ async function createAndAddToPlaylist() {
   input.value = '';
   await addCdToPlaylist(pl.id);
   nodePlaylists[selectedNodeId] = await proxyGet('playlists');
+}
+
+// ── Play Statistics ──
+
+let nodeStatsData = null;
+let currentStatsTab = 'overview';
+let topListLimit = 10;
+let topListView = 'cds';
+let activityPeriod = 'daily';
+
+function showStatsTab(name) {
+  currentStatsTab = name;
+  document.querySelectorAll('.stats-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.stats-tab').forEach(t => {
+    if (t.getAttribute('onclick')?.includes(name)) t.classList.add('active');
+  });
+  renderStatsTab();
+}
+
+async function loadNodeStats() {
+  if (!selectedNodeId) return;
+  try {
+    nodeStatsData = await proxyGet('stats?top=' + (topListLimit === 9999 ? 99999 : topListLimit));
+    renderStatsTab();
+  } catch (err) { console.error(err); }
+}
+
+function renderStatsTab() {
+  if (!nodeStatsData) return;
+  const c = document.getElementById('statsContent');
+  switch (currentStatsTab) {
+    case 'overview': c.innerHTML = renderStatsOverview(); break;
+    case 'toplist': c.innerHTML = renderStatsToplist(); break;
+    case 'activity': c.innerHTML = renderStatsActivity(); break;
+    case 'inventory': c.innerHTML = renderStatsInventory(); break;
+  }
+}
+
+function statsDuration(sec) {
+  if (!sec) return '0:00';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function renderStatsOverview() {
+  const inv = nodeStatsData.inventory;
+  const totalPlayTime = statsDuration(nodeStatsData.totalPlayTimeSec);
+  const totalLibTime = statsDuration(inv.totalDurationSeconds);
+
+  let html = `<div class="stats-grid">
+    <div class="stat-card"><div class="stat-value">${inv.totalCDs}</div><div class="stat-label">${t('stats.cds')}</div></div>
+    <div class="stat-card"><div class="stat-value">${inv.totalTracks}</div><div class="stat-label">${t('stats.tracks')}</div></div>
+    <div class="stat-card"><div class="stat-value">${totalPlayTime}</div><div class="stat-label">${t('stats.playTime')}</div></div>
+    <div class="stat-card"><div class="stat-value">${totalLibTime}</div><div class="stat-label">${t('stats.libTime')}</div></div>
+    <div class="stat-card"><div class="stat-value">${inv.totalFavorites}</div><div class="stat-label">${t('stats.favorites')}</div></div>
+    <div class="stat-card"><div class="stat-value">${inv.totalPlaylists}</div><div class="stat-label">${t('stats.playlists')}</div></div>
+  </div>`;
+
+  if (nodeStatsData.topCDs.length) {
+    html += `<div class="card" style="margin-top:16px"><div class="card-header"><span class="card-title">${t('stats.topCDsQuick')}</span></div>`;
+    html += nodeStatsData.topCDs.slice(0, 5).map((c, i) => {
+      const coverSrc = c.cover_url ? `/api/nodes/${selectedNodeId}/cover/${c.cover_url.replace(/^\/covers\//, '')}` : '';
+      return `<div class="list-item" onclick="openCdModal(${c.slot})" style="cursor:pointer">
+        <div class="top-rank">${i + 1}</div>
+        ${coverSrc ? `<img class="top-cover" src="${coverSrc}" alt="">` : `<div class="top-cover-ph">${c.slot}</div>`}
+        <div class="list-meta">
+          <div class="list-primary">${esc(c.cd_title || 'CD ' + c.slot)}</div>
+          <div class="list-secondary">${esc(c.cd_artist || '')} · ${c.play_count}x</div>
+        </div>
+      </div>`;
+    }).join('');
+    html += '</div>';
+  }
+  return html;
+}
+
+function renderStatsToplist() {
+  let html = `<div class="stats-controls">
+    <div class="btn-group">
+      <button class="btn btn-sm ${topListView === 'cds' ? 'btn-accent' : 'btn-dim'}" onclick="topListView='cds';renderStatsTab()">${t('stats.topCDs')}</button>
+      <button class="btn btn-sm ${topListView === 'tracks' ? 'btn-accent' : 'btn-dim'}" onclick="topListView='tracks';renderStatsTab()">${t('stats.topTracks')}</button>
+    </div>
+    <div class="btn-group">
+      ${[10, 25, 50, 100].map(n => `<button class="btn btn-sm ${topListLimit === n ? 'btn-accent' : 'btn-dim'}" onclick="changeTopLimit(${n})">Top ${n}</button>`).join('')}
+      <button class="btn btn-sm ${topListLimit === 9999 ? 'btn-accent' : 'btn-dim'}" onclick="changeTopLimit(9999)">${t('stats.all')}</button>
+    </div>
+  </div>`;
+
+  if (topListView === 'cds') {
+    const items = nodeStatsData.topCDs.slice(0, topListLimit);
+    if (!items.length) return html + `<div class="empty-state">${t('stats.noData')}</div>`;
+    html += items.map((c, i) => {
+      const coverSrc = c.cover_url ? `/api/nodes/${selectedNodeId}/cover/${c.cover_url.replace(/^\/covers\//, '')}` : '';
+      return `<div class="list-item" onclick="openCdModal(${c.slot})" style="cursor:pointer">
+        <div class="top-rank">${i + 1}</div>
+        ${coverSrc ? `<img class="top-cover" src="${coverSrc}" alt="">` : `<div class="top-cover-ph">${c.slot}</div>`}
+        <div class="list-meta">
+          <div class="list-primary">${esc(c.cd_title || 'CD ' + c.slot)}</div>
+          <div class="list-secondary">${esc(c.cd_artist || '')} · Slot ${c.slot}</div>
+        </div>
+        <div class="top-count"><div class="top-count-val">${c.play_count}x</div><div class="top-count-sub">${formatDate(c.last_played)}</div></div>
+      </div>`;
+    }).join('');
+  } else {
+    const items = nodeStatsData.topTracks.slice(0, topListLimit);
+    if (!items.length) return html + `<div class="empty-state">${t('stats.noData')}</div>`;
+    html += items.map((tr, i) => `
+      <div class="list-item" onclick="openCdModal(${tr.slot})" style="cursor:pointer">
+        <div class="top-rank">${i + 1}</div>
+        <div class="list-meta">
+          <div class="list-primary">${esc(tr.track_title || 'Track ' + tr.track_number)}</div>
+          <div class="list-secondary">${esc(tr.cd_artist || '')} · ${esc(tr.cd_title || 'CD ' + tr.slot)} · Track ${tr.track_number}</div>
+        </div>
+        <div class="top-count"><div class="top-count-val">${tr.play_count}x</div><div class="top-count-sub">${formatDate(tr.last_played)}</div></div>
+      </div>`).join('');
+  }
+  return html;
+}
+
+async function changeTopLimit(n) {
+  topListLimit = n;
+  if (n > nodeStatsData.topCDs.length || n > nodeStatsData.topTracks.length) {
+    nodeStatsData = await proxyGet('stats?top=' + (n === 9999 ? 99999 : n));
+  }
+  renderStatsTab();
+}
+
+function renderStatsActivity() {
+  let html = `<div class="stats-controls">
+    <div class="btn-group">
+      ${['daily', 'weekly', 'monthly', 'yearly'].map(p =>
+        `<button class="btn btn-sm ${activityPeriod === p ? 'btn-accent' : 'btn-dim'}" onclick="activityPeriod='${p}';renderStatsTab()">${t('stats.' + p)}</button>`
+      ).join('')}
+    </div>
+  </div>`;
+
+  const data = nodeStatsData[activityPeriod] || [];
+  if (!data.length) return html + `<div class="empty-state">${t('stats.noData')}</div>`;
+
+  const maxPlays = Math.max(...data.map(d => d.play_count));
+
+  html += `<div class="chart-container"><div class="bar-chart">`;
+  for (const d of data) {
+    const pct = maxPlays > 0 ? (d.play_count / maxPlays * 100) : 0;
+    const label = activityPeriod === 'yearly' ? d.period : d.period.substring(5);
+    html += `<div class="bar-col">
+      <div class="bar-value">${d.play_count}</div>
+      <div class="bar-fill" style="height:${Math.max(pct, 2)}%"></div>
+      <div class="bar-label">${label}</div>
+    </div>`;
+  }
+  html += `</div></div>`;
+
+  html += `<div class="stats-table"><table>
+    <thead><tr><th>${t('stats.period')}</th><th>${t('stats.plays')}</th><th>${t('stats.uniqueCDs')}</th><th>${t('stats.uniqueTracks')}</th></tr></thead><tbody>`;
+  for (const d of [...data].reverse()) {
+    html += `<tr><td>${d.period}</td><td>${d.play_count}</td><td>${d.unique_cds}</td><td>${d.unique_tracks}</td></tr>`;
+  }
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+function renderStatsInventory() {
+  const inv = nodeStatsData.inventory;
+  let html = `<div class="stats-grid">
+    <div class="stat-card"><div class="stat-value">${inv.totalCDs}</div><div class="stat-label">${t('stats.cds')}</div></div>
+    <div class="stat-card"><div class="stat-value">${inv.totalTracks}</div><div class="stat-label">${t('stats.tracks')}</div></div>
+    <div class="stat-card"><div class="stat-value">${statsDuration(inv.totalDurationSeconds)}</div><div class="stat-label">${t('stats.totalDuration')}</div></div>
+    <div class="stat-card"><div class="stat-value">${inv.totalPlaylists}</div><div class="stat-label">${t('stats.playlists')}</div></div>
+    <div class="stat-card"><div class="stat-value">${inv.totalPlaylistItems}</div><div class="stat-label">${t('stats.playlistItems')}</div></div>
+    <div class="stat-card"><div class="stat-value">${inv.totalFavorites}</div><div class="stat-label">${t('stats.favorites')}</div></div>
+    <div class="stat-card"><div class="stat-value">${inv.totalRatings}</div><div class="stat-label">${t('stats.totalRatings')}</div></div>
+    <div class="stat-card"><div class="stat-value">${inv.avgRating ? inv.avgRating.toFixed(1) + ' &#9733;' : '-'}</div><div class="stat-label">${t('stats.avgRating')}</div></div>
+  </div>`;
+
+  if (inv.genreDistribution && inv.genreDistribution.length) {
+    const maxCount = Math.max(...inv.genreDistribution.map(g => g.count));
+    html += `<div class="card" style="margin-top:16px"><div class="card-header"><span class="card-title">${t('stats.genreDistribution')}</span></div>`;
+    html += inv.genreDistribution.map(g => `
+      <div class="genre-bar-row">
+        <span class="genre-bar-label">${esc(g.genre || t('stats.unknown'))}</span>
+        <div class="genre-bar-track"><div class="genre-bar-fill" style="width:${(g.count / maxCount * 100)}%"></div></div>
+        <span class="genre-bar-count">${g.count}</span>
+      </div>`).join('');
+    html += '</div>';
+  }
+  return html;
 }
 
 // ── Scanner ──
