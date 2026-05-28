@@ -1048,7 +1048,7 @@ function renderPlaylists() {
     el.innerHTML = `<div class="empty-state" style="padding:20px">${t('playlists.empty')}</div>`;
     return;
   }
-  const MAX_COVERS = 5;
+  const MAX_COVERS = parseInt(hubSettings.max_covers) || 5;
   el.innerHTML = data.map(pl => {
     const items = pl.items || [];
     const count = items.length;
@@ -1542,12 +1542,16 @@ function closeBrainzModal() {
 
 // ── Settings ──
 
+let hubSettings = {};
+
 async function loadSettings() {
   try {
     const data = await fetch('/api/settings').then(r => r.json());
+    hubSettings = data;
     document.getElementById('settHubName').value = data.hub_name || 'CAC Hub';
     document.getElementById('settHubPort').value = data.hub_port || '4000';
     document.getElementById('settLanguage').value = data.language || 'auto';
+    document.getElementById('settMaxCovers').value = data.max_covers || '5';
     setLanguage(data.language || 'auto');
   } catch {}
 }
@@ -1557,14 +1561,17 @@ async function saveHubSettings() {
     hub_name: document.getElementById('settHubName').value,
     hub_port: document.getElementById('settHubPort').value,
     language: document.getElementById('settLanguage').value,
+    max_covers: document.getElementById('settMaxCovers').value,
   };
   await fetch('/api/settings', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(settings),
   });
+  hubSettings = { ...hubSettings, ...settings };
   setLanguage(settings.language);
   document.querySelector('.hub-title').textContent = settings.hub_name || 'CAC Hub';
+  showToast(t('settings.saved'));
 }
 
 function renderNodeList() {
