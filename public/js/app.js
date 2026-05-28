@@ -51,7 +51,11 @@ function initTabs() {
       tab.style.display = 'block';
       tab.classList.add('active');
 
-      if (btn.dataset.tab === 'settings') renderNodeList();
+      if (btn.dataset.tab === 'settings') {
+        renderNodeList();
+        const bs = document.getElementById('backupSection');
+        if (bs) bs.style.display = selectedNodeId ? '' : 'none';
+      }
     });
   });
 }
@@ -1198,7 +1202,6 @@ function showPlaylistDetailModal(pl) {
   const lib = nodeLibrary[selectedNodeId] || [];
   const items = pl.items || [];
 
-  // Calculate total duration
   let totalSec = 0;
   for (const item of items) {
     const cd = lib.find(c => c.slot === item.slot);
@@ -1211,7 +1214,7 @@ function showPlaylistDetailModal(pl) {
     <strong>${esc(pl.name)}</strong>
     <span class="playlist-count">${items.length} ${t('playlists.items')}${totalDur}</span>
     <button class="btn btn-accent btn-sm" style="margin-left:auto" onclick="playPlaylist(${pl.id});closeBrainzModal()">${t('playlists.play')}</button>
-  </div><div class="playlist-detail-items">`;
+  </div><div class="playlist-detail-items" id="hubPlDetailList">`;
 
   if (items.length === 0) {
     html += `<div style="color:var(--text-dim);padding:12px">${t('playlists.empty')}</div>`;
@@ -1221,25 +1224,15 @@ function showPlaylistDetailModal(pl) {
       const cdTitle = cd ? (cd.title || 'CD ' + item.slot) : 'Slot ' + item.slot;
       const tr = cd?.tracks?.find(t => t.track_number === item.track_number);
       const trackTitle = item.track_title || tr?.title || '';
-      const trackName = trackTitle
-        ? `${trackTitle}`
-        : `Track ${item.track_number || '?'}`;
+      const trackName = trackTitle ? `${trackTitle}` : `Track ${item.track_number || '?'}`;
       const dur = tr?.duration_seconds ? formatSeconds(tr.duration_seconds) : '';
       const rating = getRating(selectedNodeId, item.slot, item.track_number || 0);
       const isFav = isFavorite(selectedNodeId, item.slot, item.track_number || 0);
-
       const coverSrc = cd?.cover_url
-        ? `/api/nodes/${selectedNodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}`
-        : '';
+        ? `/api/nodes/${selectedNodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}` : '';
 
-      const upDisabled = idx === 0 ? ' disabled' : '';
-      const downDisabled = idx === items.length - 1 ? ' disabled' : '';
-
-      return `<div class="playlist-detail-item" data-item-id="${item.id}">
-        <div class="playlist-reorder">
-          <button class="reorder-btn" onclick="reorderPlaylistItem(${pl.id}, ${idx}, -1)"${upDisabled}>&#9650;</button>
-          <button class="reorder-btn" onclick="reorderPlaylistItem(${pl.id}, ${idx}, 1)"${downDisabled}>&#9660;</button>
-        </div>
+      return `<div class="playlist-detail-item" draggable="true" data-idx="${idx}" data-item-id="${item.id}">
+        <span class="drag-handle" title="Drag">&#9776;</span>
         <span class="track-num">${idx + 1}</span>
         ${coverSrc
           ? `<img class="playlist-item-cover" src="${coverSrc}" alt="">`
@@ -1260,8 +1253,97 @@ function showPlaylistDetailModal(pl) {
   document.getElementById('brainzModalBody').innerHTML = html;
   document.getElementById('brainzModal').querySelector('.modal-header span').textContent = t('nav.playlists');
   document.getElementById('brainzModal').style.display = 'flex';
+  if (items.length > 1) initHubPlaylistDragDrop(pl.id);
 }
 
+function initHubPlaylistDragDrop(playlistId) {
+  const list = document.getElementById('hubPlDetailList');
+  if (!list) return;
+  let dragIdx = null;
+
+  list.addEventListener('dragstart', e => {
+    const item = e.target.closest('.playlist-detail-item');
+    if (!item) return;
+    dragIdx = parseInt(item.dataset.idx);
+    item.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  list.addEventListener('dragend', e => {
+    const item = e.target.closest('.playlist-detail-item');
+    if (item) item.classList.remove('dragging');
+    list.querySelectorAll('.playlist-detail-item').forEach(el => el.classList.remove('drag-over'));
+  });
+  list.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const target = e.target.closest('.playlist-detail-item');
+    list.querySelectorAll('.playlist-detail-item').forEach(el => el.classList.remove('drag-over'));
+    if (target && parseInt(target.dataset.idx) !== dragIdx) target.classList.add('drag-over');
+  });
+  list.addEventListener('drop', async e => {
+    e.preventDefault();
+    const target = e.target.closest('.playlist-detail-item');
+    if (!target) return;
+    const dropIdx = parseInt(target.dataset.idx);
+    if (dragIdx === null || dragIdx === dropIdx) return;
+    await hubReorderPlaylist(playlistId, dragIdx, dropIdx);
+    dragIdx = null;
+  });
+
+  // Touch support
+  let touchItem = null, touchClone = null;
+  list.addEventListener('touchstart', e => {
+    const handle = e.target.closest('.drag-handle');
+    if (!handle) return;
+    const item = handle.closest('.playlist-detail-item');
+    if (!item) return;
+    touchItem = item;
+    dragIdx = parseInt(item.dataset.idx);
+    touchClone = item.cloneNode(true);
+    touchClone.style.cssText = `position:fixed;left:${item.getBoundingClientRect().left}px;width:${item.offsetWidth}px;top:${item.getBoundingClientRect().top}px;z-index:9999;pointer-events:none;opacity:0.9;background:var(--accent);border-radius:6px;`;
+    document.body.appendChild(touchClone);
+    item.style.opacity = '0.3';
+  }, { passive: true });
+  list.addEventListener('touchmove', e => {
+    if (!touchClone) return;
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    touchClone.style.top = y - 20 + 'px';
+    list.querySelectorAll('.playlist-detail-item').forEach(el => {
+      el.classList.remove('drag-over');
+      const rect = el.getBoundingClientRect();
+      if (y > rect.top && y < rect.bottom && el !== touchItem) el.classList.add('drag-over');
+    });
+  }, { passive: false });
+  list.addEventListener('touchend', async () => {
+    if (!touchClone) return;
+    touchClone.remove(); touchClone = null;
+    if (touchItem) touchItem.style.opacity = '';
+    const overEl = list.querySelector('.drag-over');
+    list.querySelectorAll('.playlist-detail-item').forEach(el => el.classList.remove('drag-over'));
+    if (!overEl) { touchItem = null; return; }
+    const dropIdx = parseInt(overEl.dataset.idx);
+    if (dragIdx !== null && dragIdx !== dropIdx) await hubReorderPlaylist(_currentDetailPlaylist.id, dragIdx, dropIdx);
+    touchItem = null; dragIdx = null;
+  });
+}
+
+async function hubReorderPlaylist(playlistId, fromIdx, toIdx) {
+  const items = _currentDetailPlaylist.items;
+  const ids = items.map(i => i.id);
+  const [moved] = ids.splice(fromIdx, 1);
+  ids.splice(toIdx, 0, moved);
+  try {
+    const updated = await proxyPut(`playlists/${playlistId}/reorder`, { itemIds: ids });
+    _currentDetailPlaylist = updated;
+    showPlaylistDetailModal(updated);
+    const cached = (nodePlaylists[selectedNodeId] || []);
+    const cIdx = cached.findIndex(p => p.id === playlistId);
+    if (cIdx >= 0) cached[cIdx] = updated;
+  } catch (err) { console.error('Reorder failed:', err); }
+}
+
+// Keep old function for backward compat
 async function reorderPlaylistItem(playlistId, currentIdx, direction) {
   if (!_currentDetailPlaylist || !_currentDetailPlaylist.items) return;
   const items = _currentDetailPlaylist.items;
@@ -1963,6 +2045,48 @@ async function deleteNode(nodeId) {
 }
 
 // ── Proxy Helpers ──
+
+// ── Backup ──
+async function exportNodeBackup() {
+  if (!selectedNodeId) {
+    showToast(t('backup.selectNode'), 'error');
+    return;
+  }
+  try {
+    const data = await proxyGet('backup');
+    const node = nodes[selectedNodeId];
+    const name = (node?.name || 'node').replace(/\s+/g, '_');
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cac-backup-${name}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(t('backup.exportDone'));
+  } catch (err) { showToast(t('backup.importError') + ': ' + err.message, 'error'); }
+}
+
+async function importNodeBackup(fileInput) {
+  const file = fileInput.files[0];
+  if (!file) return;
+  if (!selectedNodeId) {
+    showToast(t('backup.selectNode'), 'error');
+    fileInput.value = '';
+    return;
+  }
+  if (!confirm(t('backup.importConfirm'))) { fileInput.value = ''; return; }
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    await proxyPost('backup', data);
+    showToast(t('backup.importDone'));
+    setTimeout(() => location.reload(), 1500);
+  } catch (err) {
+    showToast(t('backup.importError') + ': ' + err.message, 'error');
+  }
+  fileInput.value = '';
+}
 
 async function proxyGet(path) {
   const resp = await fetch(`/api/nodes/${selectedNodeId}/proxy/${path}`);

@@ -107,6 +107,17 @@ const translations = {
     'stats.resetConfirm': 'Spielstatistik wirklich zuruecksetzen?',
     'stats.resetDone': 'Statistik zurueckgesetzt',
 
+    // Backup
+    'backup.title': 'Node-Backup',
+    'backup.hint': 'Exportiere alle Einstellungen, Bibliothek, Playlists, Bewertungen, Favoriten und Spielstatistiken des ausgewaehlten Nodes als JSON-Datei.',
+    'backup.export': 'Export',
+    'backup.import': 'Import',
+    'backup.exportDone': 'Backup exportiert',
+    'backup.importDone': 'Backup importiert! Seite wird neu geladen...',
+    'backup.importConfirm': 'Backup wirklich importieren? Alle aktuellen Daten des Nodes werden ueberschrieben.',
+    'backup.importError': 'Fehler beim Importieren',
+    'backup.selectNode': 'Bitte zuerst einen Node auswaehlen',
+
     'playlists.refresh': 'Aktualisieren',
     'playlists.play': 'Abspielen',
     'playlists.empty': 'Keine Playlists vorhanden.',
@@ -265,6 +276,17 @@ const translations = {
     'stats.reset': 'Reset Statistics',
     'stats.resetConfirm': 'Really reset play statistics?',
     'stats.resetDone': 'Statistics reset',
+
+    // Backup
+    'backup.title': 'Node Backup',
+    'backup.hint': 'Export all settings, library, playlists, ratings, favorites and play statistics of the selected node as JSON file.',
+    'backup.export': 'Export',
+    'backup.import': 'Import',
+    'backup.exportDone': 'Backup exported',
+    'backup.importDone': 'Backup imported! Page will reload...',
+    'backup.importConfirm': 'Really import backup? All current node data will be overwritten.',
+    'backup.importError': 'Error importing backup',
+    'backup.selectNode': 'Please select a node first',
 
     'playlists.refresh': 'Refresh',
     'playlists.play': 'Play',

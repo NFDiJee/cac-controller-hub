@@ -222,6 +222,7 @@
         <button class="stats-tab" onclick="showStatsTab('toplist')" data-i18n="stats.toplist">Top-Listen</button>
         <button class="stats-tab" onclick="showStatsTab('activity')" data-i18n="stats.activity">Aktivitaet</button>
         <button class="stats-tab" onclick="showStatsTab('inventory')" data-i18n="stats.inventory">Inventar</button>
+        <button class="stats-tab stats-reload" onclick="loadNodeStats()" title="Reload">&#8635;</button>
       </div>
       <div id="statsContent"></div>
     </div>
@@ -287,6 +288,16 @@
       <input type="number" id="settMaxCovers" class="form-input" value="5" min="0" max="20" style="width:80px">
     </div>
     <button class="btn btn-accent" onclick="saveHubSettings()" data-i18n="settings.save">Speichern</button>
+  </div>
+
+  <div class="settings-section" id="backupSection" style="display:none">
+    <div class="card-title" data-i18n="backup.title">Node-Backup</div>
+    <p style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px" data-i18n="backup.hint">Exportiere alle Einstellungen, Bibliothek, Playlists, Bewertungen, Favoriten und Spielstatistiken des ausgewaehlten Nodes als JSON-Datei.</p>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-primary btn-sm" onclick="exportNodeBackup()" data-i18n="backup.export">Export</button>
+      <button class="btn btn-sm" onclick="document.getElementById('backupFileInput').click()" data-i18n="backup.import">Import</button>
+      <input type="file" id="backupFileInput" accept=".json" style="display:none" onchange="importNodeBackup(this)">
+    </div>
   </div>
 </div>
 
