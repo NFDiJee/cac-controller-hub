@@ -707,16 +707,34 @@ body {
   border-radius: var(--radius);
   padding: 12px;
   display: flex;
-  justify-content: space-between;
+  gap: 12px;
   align-items: center;
   cursor: pointer;
   transition: border-color 0.15s;
 }
 .playlist-item:hover { border-color: var(--accent); }
 
+.playlist-item-meta { flex: 1; min-width: 0; }
 .playlist-name { font-weight: 600; }
 .playlist-count { font-size: 0.8rem; color: var(--text-dim); }
-.playlist-actions { display: flex; gap: 6px; }
+.playlist-date { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+.playlist-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.playlist-covers {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.playlist-mini-cover {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 2px solid var(--bg-card);
+  margin-right: -10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.playlist-mini-cover:last-child { margin-right: 0; }
 
 /* Playlist add menu in CD modal */
 .playlist-add-menu {

@@ -20,9 +20,21 @@ const PLAYER_MODES = {
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initSubTabs();
+  initModalBackdropClose();
   loadSettings();
   connectWebSocket();
 });
+
+function initModalBackdropClose() {
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        if (modal.id === 'cdModal') currentCdSlot = null;
+      }
+    });
+  });
+}
 
 // ── Tab Navigation ──
 
@@ -994,18 +1006,55 @@ async function loadPlaylists() {
 
 function renderPlaylists() {
   const data = nodePlaylists[selectedNodeId] || [];
+  const lib = nodeLibrary[selectedNodeId] || [];
   const el = document.getElementById('playlistList');
   if (data.length === 0) {
     el.innerHTML = `<div class="empty-state" style="padding:20px">${t('playlists.empty')}</div>`;
     return;
   }
+  const MAX_COVERS = 5;
   el.innerHTML = data.map(pl => {
-    const count = pl.items?.length || 0;
+    const items = pl.items || [];
+    const count = items.length;
+
+    // Total duration
+    let totalSec = 0;
+    for (const item of items) {
+      const cd = lib.find(c => c.slot === item.slot);
+      const tr = cd?.tracks?.find(t => t.track_number === item.track_number);
+      if (tr?.duration_seconds) totalSec += tr.duration_seconds;
+    }
+    const durStr = totalSec > 0 ? ` · ${formatSeconds(totalSec)}` : '';
+
+    // Updated date
+    const dateStr = pl.updated_at ? formatDate(pl.updated_at) : '';
+
+    // Collect unique covers (max MAX_COVERS)
+    const seenSlots = new Set();
+    const covers = [];
+    for (const item of items) {
+      if (seenSlots.has(item.slot)) continue;
+      seenSlots.add(item.slot);
+      const cd = lib.find(c => c.slot === item.slot);
+      if (cd?.cover_url) {
+        covers.push(`/api/nodes/${selectedNodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}`);
+      }
+      if (covers.length >= MAX_COVERS) break;
+    }
+
+    const coversHtml = covers.length > 0
+      ? `<div class="playlist-covers">${covers.map(src =>
+          `<img class="playlist-mini-cover" src="${src}" alt="">`
+        ).join('')}</div>`
+      : '';
+
     return `
     <div class="playlist-item" onclick="openPlaylistDetail(${pl.id})">
-      <div>
+      ${coversHtml}
+      <div class="playlist-item-meta">
         <div class="playlist-name">${esc(pl.name)}</div>
-        <div class="playlist-count">${count} ${t('playlists.items')}</div>
+        <div class="playlist-count">${count} ${t('playlists.items')}${durStr}</div>
+        ${dateStr ? `<div class="playlist-date">${dateStr}</div>` : ''}
       </div>
       <div class="playlist-actions">
         <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();playPlaylist(${pl.id})">${t('playlists.play')}</button>
@@ -1013,6 +1062,20 @@ function renderPlaylists() {
       </div>
     </div>`;
   }).join('');
+}
+
+function formatDate(isoStr) {
+  try {
+    const d = new Date(isoStr.includes('T') ? isoStr : isoStr + 'Z');
+    if (isNaN(d)) return '';
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const date = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+    const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    // If today, show only time
+    if (d.toDateString() === now.toDateString()) return time;
+    return `${date} ${time}`;
+  } catch { return ''; }
 }
 
 async function playPlaylist(id) {
