@@ -502,12 +502,21 @@ body {
 
 .library-toolbar {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
-.lib-count { font-size: 0.85rem; color: var(--text-dim); white-space: nowrap; }
+.lib-filter-select {
+  width: auto;
+  min-width: 120px;
+  max-width: 180px;
+  padding: 7px 8px;
+  font-size: 0.82rem;
+}
+
+.lib-count { font-size: 0.85rem; color: var(--text-dim); white-space: nowrap; margin-left: auto; }
 
 .library-grid {
   display: grid;
@@ -685,7 +694,11 @@ body {
 
 /* ── Playlists ── */
 
-.playlist-toolbar { margin-bottom: 12px; }
+.playlist-toolbar { margin-bottom: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.playlist-new-inline { display: flex; gap: 6px; align-items: center; }
+.playlist-new-inline .form-input { width: 200px; }
+
 .playlist-list { display: flex; flex-direction: column; gap: 8px; }
 
 .playlist-item {
@@ -696,11 +709,93 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
 }
+.playlist-item:hover { border-color: var(--accent); }
 
 .playlist-name { font-weight: 600; }
 .playlist-count { font-size: 0.8rem; color: var(--text-dim); }
 .playlist-actions { display: flex; gap: 6px; }
+
+/* Playlist add menu in CD modal */
+.playlist-add-menu {
+  margin-top: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+}
+
+.playlist-add-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+
+.playlist-add-list { max-height: 200px; overflow-y: auto; }
+
+.playlist-pick-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+.playlist-pick-item:hover { background: var(--accent-dim); }
+.playlist-pick-item .playlist-count { font-size: 0.75rem; }
+
+.playlist-add-new {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.playlist-add-new .form-input { flex: 1; }
+
+/* Playlist detail modal */
+.playlist-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.playlist-detail-items { max-height: 400px; overflow-y: auto; }
+
+.playlist-detail-item {
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  gap: 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.playlist-detail-item:hover { background: var(--accent-dim); }
+
+/* Track playlist add button */
+.btn-playlist-sm {
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 0 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  line-height: 1.4;
+  transition: all 0.15s;
+}
+.btn-playlist-sm:hover { background: var(--accent-dim); border-color: var(--accent); }
 
 /* ── Scanner ── */
 

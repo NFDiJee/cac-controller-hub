@@ -795,19 +795,36 @@ async function loadLibrary() {
 function renderLibrary() {
   const lib = nodeLibrary[selectedNodeId] || [];
   const grid = document.getElementById('libraryGrid');
-  document.getElementById('libCount').textContent = `${lib.length} CDs`;
 
   if (lib.length === 0) {
+    document.getElementById('libCount').textContent = '0 CDs';
     grid.innerHTML = `<div class="empty-state">${t('library.noCds')}</div>`;
     return;
   }
 
+  // Populate filter dropdowns
+  populateLibraryFilters(lib);
+
+  // Apply filters
   const query = (document.getElementById('libSearch').value || '').toLowerCase();
-  const filtered = query
-    ? lib.filter(c => (c.title || '').toLowerCase().includes(query) ||
-                      (c.artist || '').toLowerCase().includes(query) ||
-                      String(c.slot).includes(query))
-    : lib;
+  const genreFilter = document.getElementById('libFilterGenre').value;
+  const yearFilter = document.getElementById('libFilterYear').value;
+  const ratingFilter = parseInt(document.getElementById('libFilterRating').value) || 0;
+
+  const filtered = lib.filter(c => {
+    if (query && !(c.title || '').toLowerCase().includes(query) &&
+        !(c.artist || '').toLowerCase().includes(query) &&
+        !String(c.slot).includes(query)) return false;
+    if (genreFilter && (c.genre || '') !== genreFilter) return false;
+    if (yearFilter && String(c.year || '') !== yearFilter) return false;
+    if (ratingFilter) {
+      const r = getRating(selectedNodeId, c.slot, 0);
+      if (r < ratingFilter) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('libCount').textContent = `${filtered.length}/${lib.length} CDs`;
 
   grid.innerHTML = filtered.map(cd => {
     const coverSrc = cd.cover_url
@@ -830,6 +847,37 @@ function renderLibrary() {
         </div>
       </div>`;
   }).join('');
+}
+
+function populateLibraryFilters(lib) {
+  const genreSelect = document.getElementById('libFilterGenre');
+  const yearSelect = document.getElementById('libFilterYear');
+  const currentGenre = genreSelect.value;
+  const currentYear = yearSelect.value;
+
+  // Collect unique genres and years
+  const genres = new Set();
+  const years = new Set();
+  for (const cd of lib) {
+    if (cd.genre) genres.add(cd.genre);
+    if (cd.year) years.add(String(cd.year));
+  }
+
+  // Only rebuild if options changed
+  const genreArr = [...genres].sort();
+  const yearArr = [...years].sort().reverse();
+
+  if (genreSelect.options.length !== genreArr.length + 1) {
+    genreSelect.innerHTML = `<option value="">${t('library.allGenres')}</option>` +
+      genreArr.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('');
+    genreSelect.value = currentGenre;
+  }
+
+  if (yearSelect.options.length !== yearArr.length + 1) {
+    yearSelect.innerHTML = `<option value="">${t('library.allYears')}</option>` +
+      yearArr.map(y => `<option value="${y}">${y}</option>`).join('');
+    yearSelect.value = currentYear;
+  }
 }
 
 function filterLibrary() {
@@ -877,7 +925,7 @@ function refreshCdModal() {
   favBtn.innerHTML = cdFav ? '&#9829;' : '&#9825;';
   favBtn.className = 'btn-icon btn-fav' + (cdFav ? ' active' : '');
 
-  // Tracks with stars + favorites
+  // Tracks with stars + favorites + playlist add
   const tracksEl = document.getElementById('cdModalTracks');
   if (cd.tracks && cd.tracks.length) {
     tracksEl.innerHTML = cd.tracks.map(tr => {
@@ -891,6 +939,7 @@ function refreshCdModal() {
         <button class="btn-icon btn-fav-sm${isFav ? ' active' : ''}" onclick="event.stopPropagation();toggleFavItem(${slot}, ${tr.track_number})">
           ${isFav ? '&#9829;' : '&#9825;'}
         </button>
+        <button class="btn-icon btn-playlist-sm" onclick="event.stopPropagation();quickAddTrackToPlaylist(${slot}, ${tr.track_number})" title="${t('library.addToPlaylist')}">+</button>
         <span class="track-dur">${formatSeconds(tr.duration_seconds)}</span>
       </div>`;
     }).join('');
@@ -918,32 +967,198 @@ async function loadCdTrack(slot, track) {
 
 // ── Playlists ──
 
+let nodePlaylists = {}; // nodeId -> [playlist, ...]
+
 async function loadPlaylists() {
   if (!selectedNodeId) return;
   try {
     const data = await proxyGet('playlists');
-    const el = document.getElementById('playlistList');
-    if (!data || data.length === 0) {
-      el.innerHTML = `<div class="empty-state" style="padding:20px">${t('playlists.empty')}</div>`;
-      return;
-    }
-    el.innerHTML = data.map(pl => `
-      <div class="playlist-item">
-        <div>
-          <div class="playlist-name">${esc(pl.name)}</div>
-          <div class="playlist-count">${pl.items?.length || 0} ${t('playlists.items')}</div>
-        </div>
-        <div class="playlist-actions">
-          <button class="btn btn-accent btn-sm" onclick="playPlaylist(${pl.id})">${t('playlists.play')}</button>
-        </div>
-      </div>`).join('');
+    nodePlaylists[selectedNodeId] = data || [];
+    renderPlaylists();
   } catch {
-    document.getElementById('playlistList').innerHTML = '';
+    nodePlaylists[selectedNodeId] = [];
+    renderPlaylists();
   }
+}
+
+function renderPlaylists() {
+  const data = nodePlaylists[selectedNodeId] || [];
+  const el = document.getElementById('playlistList');
+  if (data.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:20px">${t('playlists.empty')}</div>`;
+    return;
+  }
+  el.innerHTML = data.map(pl => `
+    <div class="playlist-item" onclick="openPlaylistDetail(${pl.id})">
+      <div>
+        <div class="playlist-name">${esc(pl.name)}</div>
+        <div class="playlist-count">${pl.items?.length || 0} ${t('playlists.items')}</div>
+      </div>
+      <div class="playlist-actions">
+        <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();playPlaylist(${pl.id})">${t('playlists.play')}</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deletePlaylist(${pl.id})">&times;</button>
+      </div>
+    </div>`).join('');
 }
 
 async function playPlaylist(id) {
   await proxyPost(`playlists/${id}/play`);
+}
+
+async function deletePlaylist(id) {
+  if (!confirm(t('playlists.deleteConfirm'))) return;
+  try {
+    await fetch(`/api/nodes/${selectedNodeId}/proxy/playlists/${id}`, { method: 'DELETE' });
+    await loadPlaylists();
+  } catch {}
+}
+
+async function createPlaylistInline() {
+  const input = document.getElementById('newPlaylistNameInline');
+  const name = input.value.trim();
+  if (!name || !selectedNodeId) return;
+  await proxyPost('playlists', { name });
+  input.value = '';
+  await loadPlaylists();
+}
+
+async function openPlaylistDetail(id) {
+  if (!selectedNodeId) return;
+  try {
+    const pl = await proxyGet(`playlists/${id}`);
+    showPlaylistDetailModal(pl);
+  } catch {}
+}
+
+function showPlaylistDetailModal(pl) {
+  const lib = nodeLibrary[selectedNodeId] || [];
+  const items = pl.items || [];
+  let html = `<div class="playlist-detail-header">
+    <strong>${esc(pl.name)}</strong> — ${items.length} ${t('playlists.items')}
+    <button class="btn btn-accent btn-sm" style="margin-left:auto" onclick="playPlaylist(${pl.id});closeBrainzModal()">${t('playlists.play')}</button>
+  </div><div class="playlist-detail-items">`;
+
+  if (items.length === 0) {
+    html += `<div style="color:var(--text-dim);padding:12px">${t('playlists.empty')}</div>`;
+  } else {
+    html += items.map((item, idx) => {
+      const cd = lib.find(c => c.slot === item.slot);
+      const title = cd ? (cd.title || 'CD ' + item.slot) : 'Slot ' + item.slot;
+      const trackInfo = item.track_number ? ` — Track ${item.track_number}` : ' — alle Tracks';
+      return `<div class="playlist-detail-item">
+        <span class="track-num">${idx + 1}</span>
+        <span class="track-name">${esc(title)}${trackInfo}</span>
+        <button class="btn-icon btn-playlist-sm" onclick="removePlaylistItem(${pl.id}, ${item.id})" title="Entfernen">&times;</button>
+      </div>`;
+    }).join('');
+  }
+
+  html += '</div>';
+  document.getElementById('brainzModalBody').innerHTML = html;
+  document.getElementById('brainzModal').querySelector('.modal-header span').textContent = t('nav.playlists');
+  document.getElementById('brainzModal').style.display = 'flex';
+}
+
+async function removePlaylistItem(playlistId, itemId) {
+  try {
+    await fetch(`/api/nodes/${selectedNodeId}/proxy/playlists/${playlistId}/items/${itemId}`, { method: 'DELETE' });
+    await openPlaylistDetail(playlistId);
+    await loadPlaylists();
+  } catch {}
+}
+
+// ── Add to Playlist (from CD Modal) ──
+
+async function showAddToPlaylistMenu() {
+  if (!selectedNodeId) return;
+  // Load playlists if not cached
+  if (!nodePlaylists[selectedNodeId]) {
+    try { nodePlaylists[selectedNodeId] = await proxyGet('playlists'); } catch { nodePlaylists[selectedNodeId] = []; }
+  }
+  const playlists = nodePlaylists[selectedNodeId] || [];
+  const listEl = document.getElementById('cdModalPlaylistList');
+
+  if (playlists.length === 0) {
+    listEl.innerHTML = `<div style="color:var(--text-dim);padding:8px;font-size:0.85rem">${t('playlists.empty')}</div>`;
+  } else {
+    listEl.innerHTML = playlists.map(pl =>
+      `<div class="playlist-pick-item" onclick="addCdToPlaylist(${pl.id})">
+        <span>${esc(pl.name)}</span>
+        <span class="playlist-count">${pl.items?.length || 0}</span>
+      </div>`
+    ).join('');
+  }
+  document.getElementById('cdModalPlaylistMenu').style.display = 'block';
+}
+
+function hideAddToPlaylistMenu() {
+  document.getElementById('cdModalPlaylistMenu').style.display = 'none';
+}
+
+async function addCdToPlaylist(playlistId) {
+  if (!currentCdSlot || !selectedNodeId) return;
+  const lib = nodeLibrary[selectedNodeId] || [];
+  const cd = lib.find(c => c.slot === currentCdSlot);
+  const tracks = cd?.tracks || [];
+
+  if (tracks.length > 0) {
+    // Add all tracks individually
+    for (const tr of tracks) {
+      await proxyPost(`playlists/${playlistId}/items`, { slot: currentCdSlot, track: tr.track_number });
+    }
+  } else {
+    // No track data — add whole CD as one item
+    await proxyPost(`playlists/${playlistId}/items`, { slot: currentCdSlot, track: 0 });
+  }
+  hideAddToPlaylistMenu();
+  // Refresh cache
+  try { nodePlaylists[selectedNodeId] = await proxyGet('playlists'); } catch {}
+}
+
+async function addTrackToPlaylist(playlistId, slot, trackNumber) {
+  if (!selectedNodeId) return;
+  await proxyPost(`playlists/${playlistId}/items`, { slot, track: trackNumber });
+  try { nodePlaylists[selectedNodeId] = await proxyGet('playlists'); } catch {}
+}
+
+async function quickAddTrackToPlaylist(slot, trackNumber) {
+  if (!selectedNodeId) return;
+  // If only one playlist exists, add directly. Otherwise show picker.
+  if (!nodePlaylists[selectedNodeId]) {
+    try { nodePlaylists[selectedNodeId] = await proxyGet('playlists'); } catch { nodePlaylists[selectedNodeId] = []; }
+  }
+  const playlists = nodePlaylists[selectedNodeId] || [];
+  if (playlists.length === 0) {
+    const name = prompt(t('playlists.newName'));
+    if (!name) return;
+    const pl = await proxyPost('playlists', { name });
+    await proxyPost(`playlists/${pl.id}/items`, { slot, track: trackNumber });
+    nodePlaylists[selectedNodeId] = await proxyGet('playlists');
+    return;
+  }
+  if (playlists.length === 1) {
+    await addTrackToPlaylist(playlists[0].id, slot, trackNumber);
+    return;
+  }
+  // Multiple playlists — show a simple picker
+  const picked = prompt(
+    playlists.map((pl, i) => `${i + 1}. ${pl.name}`).join('\n') + '\n\n' + t('playlists.pickNumber'),
+    '1'
+  );
+  const idx = parseInt(picked) - 1;
+  if (idx >= 0 && idx < playlists.length) {
+    await addTrackToPlaylist(playlists[idx].id, slot, trackNumber);
+  }
+}
+
+async function createAndAddToPlaylist() {
+  const input = document.getElementById('newPlaylistName');
+  const name = input.value.trim();
+  if (!name || !selectedNodeId || !currentCdSlot) return;
+  const pl = await proxyPost('playlists', { name });
+  input.value = '';
+  await addCdToPlaylist(pl.id);
+  nodePlaylists[selectedNodeId] = await proxyGet('playlists');
 }
 
 // ── Scanner ──

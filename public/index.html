@@ -169,6 +169,20 @@
       <div class="library-toolbar">
         <input type="text" id="libSearch" class="form-input" placeholder="Suchen..."
                data-i18n-placeholder="library.search" oninput="filterLibrary()">
+        <select id="libFilterGenre" class="form-input lib-filter-select" onchange="filterLibrary()">
+          <option value="" data-i18n="library.allGenres">Alle Genres</option>
+        </select>
+        <select id="libFilterYear" class="form-input lib-filter-select" onchange="filterLibrary()">
+          <option value="" data-i18n="library.allYears">Alle Jahre</option>
+        </select>
+        <select id="libFilterRating" class="form-input lib-filter-select" onchange="filterLibrary()">
+          <option value="" data-i18n="library.allRatings">Alle Bewertungen</option>
+          <option value="5">&#9733;&#9733;&#9733;&#9733;&#9733;</option>
+          <option value="4">&#9733;&#9733;&#9733;&#9733;+</option>
+          <option value="3">&#9733;&#9733;&#9733;+</option>
+          <option value="2">&#9733;&#9733;+</option>
+          <option value="1">&#9733;+</option>
+        </select>
         <span class="lib-count" id="libCount">0 CDs</span>
       </div>
       <div class="library-grid" id="libraryGrid"></div>
@@ -188,6 +202,11 @@
     <div id="sub-playlists" class="sub-content" style="display:none">
       <div class="playlist-toolbar">
         <button class="btn btn-accent" onclick="loadPlaylists()" data-i18n="playlists.refresh">Aktualisieren</button>
+        <div class="playlist-new-inline">
+          <input type="text" id="newPlaylistNameInline" class="form-input" placeholder="Neue Playlist..."
+                 data-i18n-placeholder="playlists.newName">
+          <button class="btn btn-accent btn-sm" onclick="createPlaylistInline()" data-i18n="playlists.create">Erstellen</button>
+        </div>
       </div>
       <div id="playlistList" class="playlist-list"></div>
     </div>
@@ -277,6 +296,19 @@
       <div class="cd-detail-actions">
         <button class="btn btn-accent" onclick="loadCdFromModal(1)" data-i18n="library.loadP1">Player 1 laden</button>
         <button class="btn btn-accent" onclick="loadCdFromModal(2)" data-i18n="library.loadP2">Player 2 laden</button>
+        <button class="btn btn-dim" onclick="showAddToPlaylistMenu()" data-i18n="library.addToPlaylist">+ Playlist</button>
+      </div>
+      <div id="cdModalPlaylistMenu" class="playlist-add-menu" style="display:none">
+        <div class="playlist-add-header">
+          <span data-i18n="playlists.addTo">Zur Playlist hinzufuegen</span>
+          <button class="modal-close" onclick="hideAddToPlaylistMenu()">&times;</button>
+        </div>
+        <div id="cdModalPlaylistList" class="playlist-add-list"></div>
+        <div class="playlist-add-new">
+          <input type="text" id="newPlaylistName" class="form-input" placeholder="Neue Playlist..."
+                 data-i18n-placeholder="playlists.newName">
+          <button class="btn btn-accent btn-sm" onclick="createAndAddToPlaylist()" data-i18n="playlists.create">Erstellen</button>
+        </div>
       </div>
     </div>
   </div>
