@@ -1044,7 +1044,10 @@ async function openPlaylistDetail(id) {
   } catch {}
 }
 
+let _currentDetailPlaylist = null;
+
 function showPlaylistDetailModal(pl) {
+  _currentDetailPlaylist = pl;
   const lib = nodeLibrary[selectedNodeId] || [];
   const items = pl.items || [];
 
@@ -1070,7 +1073,6 @@ function showPlaylistDetailModal(pl) {
       const cd = lib.find(c => c.slot === item.slot);
       const cdTitle = cd ? (cd.title || 'CD ' + item.slot) : 'Slot ' + item.slot;
       const tr = cd?.tracks?.find(t => t.track_number === item.track_number);
-      // Use track_title from API if available, else look up in library
       const trackTitle = item.track_title || tr?.title || '';
       const trackName = trackTitle
         ? `${trackTitle}`
@@ -1083,7 +1085,14 @@ function showPlaylistDetailModal(pl) {
         ? `/api/nodes/${selectedNodeId}/cover/${cd.cover_url.replace(/^\/covers\//, '')}`
         : '';
 
-      return `<div class="playlist-detail-item">
+      const upDisabled = idx === 0 ? ' disabled' : '';
+      const downDisabled = idx === items.length - 1 ? ' disabled' : '';
+
+      return `<div class="playlist-detail-item" data-item-id="${item.id}">
+        <div class="playlist-reorder">
+          <button class="reorder-btn" onclick="reorderPlaylistItem(${pl.id}, ${idx}, -1)"${upDisabled}>&#9650;</button>
+          <button class="reorder-btn" onclick="reorderPlaylistItem(${pl.id}, ${idx}, 1)"${downDisabled}>&#9660;</button>
+        </div>
         <span class="track-num">${idx + 1}</span>
         ${coverSrc
           ? `<img class="playlist-item-cover" src="${coverSrc}" alt="">`
@@ -1095,7 +1104,7 @@ function showPlaylistDetailModal(pl) {
         ${rating ? `<span class="track-stars-sm">${'&#9733;'.repeat(rating)}</span>` : ''}
         ${isFav ? '<span class="btn-fav-sm active">&#9829;</span>' : ''}
         <span class="track-dur">${dur}</span>
-        <button class="btn-icon btn-playlist-sm" onclick="removePlaylistItem(${pl.id}, ${item.id})" title="Entfernen">&times;</button>
+        <button class="btn-icon btn-playlist-sm" onclick="removePlaylistItem(${pl.id}, ${item.id})" title="${t('playlists.remove')}">&times;</button>
       </div>`;
     }).join('');
   }
@@ -1104,6 +1113,29 @@ function showPlaylistDetailModal(pl) {
   document.getElementById('brainzModalBody').innerHTML = html;
   document.getElementById('brainzModal').querySelector('.modal-header span').textContent = t('nav.playlists');
   document.getElementById('brainzModal').style.display = 'flex';
+}
+
+async function reorderPlaylistItem(playlistId, currentIdx, direction) {
+  if (!_currentDetailPlaylist || !_currentDetailPlaylist.items) return;
+  const items = _currentDetailPlaylist.items;
+  const newIdx = currentIdx + direction;
+  if (newIdx < 0 || newIdx >= items.length) return;
+
+  // Swap the two items
+  const ids = items.map(i => i.id);
+  [ids[currentIdx], ids[newIdx]] = [ids[newIdx], ids[currentIdx]];
+
+  try {
+    const updated = await proxyPut(`playlists/${playlistId}/reorder`, { itemIds: ids });
+    _currentDetailPlaylist = updated;
+    showPlaylistDetailModal(updated);
+    // Refresh cache
+    const cached = (nodePlaylists[selectedNodeId] || []);
+    const cIdx = cached.findIndex(p => p.id === playlistId);
+    if (cIdx >= 0) cached[cIdx] = updated;
+  } catch (err) {
+    console.error('Reorder failed:', err);
+  }
 }
 
 async function removePlaylistItem(playlistId, itemId) {

@@ -69,6 +69,7 @@ const translations = {
     'playlists.create': 'Erstellen',
     'playlists.deleteConfirm': 'Playlist wirklich loeschen?',
     'playlists.pickNumber': 'Nummer eingeben:',
+    'playlists.remove': 'Entfernen',
 
     'scanner.singleTitle': 'Einzelner Slot',
     'scanner.rangeTitle': 'Bereich scannen',
@@ -178,6 +179,7 @@ const translations = {
     'playlists.create': 'Create',
     'playlists.deleteConfirm': 'Really delete this playlist?',
     'playlists.pickNumber': 'Enter number:',
+    'playlists.remove': 'Remove',
 
     'scanner.singleTitle': 'Single Slot',
     'scanner.rangeTitle': 'Range Scan',
