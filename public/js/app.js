@@ -500,10 +500,12 @@ function yearToYYYY(val) {
 }
 
 function formatSeconds(sec) {
-  if (!sec || sec <= 0) return '0:00';
-  const m = Math.floor(sec / 60);
+  if (!sec || sec <= 0) return '00:00';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
   const s = Math.floor(sec % 60);
-  return m + ':' + String(s).padStart(2, '0');
+  if (h > 0) return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
 // ── Ratings ──
@@ -1077,7 +1079,8 @@ async function loadPlaylists() {
     }
     nodePlaylists[selectedNodeId] = detailed;
     renderPlaylists();
-  } catch {
+  } catch (err) {
+    console.error('loadPlaylists failed:', err);
     nodePlaylists[selectedNodeId] = [];
     renderPlaylists();
   }
@@ -1284,10 +1287,10 @@ async function reorderPlaylistItem(playlistId, currentIdx, direction) {
 
 async function removePlaylistItem(playlistId, itemId) {
   try {
-    await fetch(`/api/nodes/${selectedNodeId}/proxy/playlists/${playlistId}/items/${itemId}`, { method: 'DELETE' });
+    await proxyDelete(`playlists/${playlistId}/items/${itemId}`);
     await openPlaylistDetail(playlistId);
     await loadPlaylists();
-  } catch {}
+  } catch (err) { console.error('Remove item failed:', err); }
 }
 
 // ── Add to Playlist (from CD Modal) ──
@@ -1497,11 +1500,11 @@ function renderStatsTab() {
 }
 
 function statsDuration(sec) {
-  if (!sec) return '0:00';
+  if (!sec) return '00:00:00';
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   const s = Math.floor(sec % 60);
-  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
 function renderStatsOverview() {
@@ -1533,7 +1536,20 @@ function renderStatsOverview() {
     }).join('');
     html += '</div>';
   }
+
+  html += `<div style="margin-top:24px;text-align:right">
+    <button class="btn btn-danger btn-sm" onclick="resetNodePlayStats()">${t('stats.reset')}</button>
+  </div>`;
   return html;
+}
+
+async function resetNodePlayStats() {
+  if (!confirm(t('stats.resetConfirm'))) return;
+  try {
+    await proxyDelete('stats/reset');
+    showToast(t('stats.resetDone'));
+    await loadNodeStats();
+  } catch (err) { console.error(err); }
 }
 
 function renderStatsToplist() {
@@ -1614,9 +1630,9 @@ function renderStatsActivity() {
   html += `</div></div>`;
 
   html += `<div class="stats-table"><table>
-    <thead><tr><th>${t('stats.period')}</th><th>${t('stats.plays')}</th><th>${t('stats.uniqueCDs')}</th><th>${t('stats.uniqueTracks')}</th></tr></thead><tbody>`;
+    <thead><tr><th>${t('stats.period')}</th><th>${t('stats.plays')}</th><th>${t('stats.playTime')}</th><th>${t('stats.uniqueCDs')}</th><th>${t('stats.uniqueTracks')}</th></tr></thead><tbody>`;
   for (const d of [...data].reverse()) {
-    html += `<tr><td>${d.period}</td><td>${d.play_count}</td><td>${d.unique_cds}</td><td>${d.unique_tracks}</td></tr>`;
+    html += `<tr><td>${d.period}</td><td>${d.play_count}</td><td>${statsDuration(d.play_time_sec)}</td><td>${d.unique_cds}</td><td>${d.unique_tracks}</td></tr>`;
   }
   html += `</tbody></table></div>`;
   return html;
@@ -1969,6 +1985,13 @@ async function proxyPut(path, body = {}) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
+}
+
+async function proxyDelete(path) {
+  const resp = await fetch(`/api/nodes/${selectedNodeId}/proxy/${path}`, { method: 'DELETE' });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
 

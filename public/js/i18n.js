@@ -103,6 +103,9 @@ const translations = {
     'stats.avgRating': 'Ø Bewertung',
     'stats.genreDistribution': 'Genre-Verteilung',
     'stats.unknown': 'Unbekannt',
+    'stats.reset': 'Statistik zuruecksetzen',
+    'stats.resetConfirm': 'Spielstatistik wirklich zuruecksetzen?',
+    'stats.resetDone': 'Statistik zurueckgesetzt',
 
     'playlists.refresh': 'Aktualisieren',
     'playlists.play': 'Abspielen',
@@ -259,6 +262,9 @@ const translations = {
     'stats.avgRating': 'Avg. Rating',
     'stats.genreDistribution': 'Genre Distribution',
     'stats.unknown': 'Unknown',
+    'stats.reset': 'Reset Statistics',
+    'stats.resetConfirm': 'Really reset play statistics?',
+    'stats.resetDone': 'Statistics reset',
 
     'playlists.refresh': 'Refresh',
     'playlists.play': 'Play',
