@@ -23,6 +23,7 @@
   --gold: #ffd700;
   --heart: #ef5350;
   --cyan: #06b6d4;
+  --accent-subtle: rgba(79,195,247,0.08);
   --border: #2a2a4a;
   --border-light: #3a3a5a;
   --radius: 8px;
@@ -936,7 +937,7 @@ body {
 .picker-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: var(--bg-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1375,7 +1376,7 @@ textarea.form-input { min-height: 80px; resize: vertical; }
   color: var(--text);
 }
 .stats-table tr:hover td {
-  background: rgba(79,195,247,0.08);
+  background: var(--accent-subtle);
 }
 .genre-bar-row {
   display: flex;
@@ -1416,7 +1417,7 @@ textarea.form-input { min-height: 80px; resize: vertical; }
   border-bottom: 1px solid var(--border);
 }
 .list-item:hover {
-  background: rgba(79,195,247,0.06);
+  background: var(--accent-subtle);
 }
 .list-meta {
   flex: 1;
