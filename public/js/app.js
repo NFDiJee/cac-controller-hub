@@ -219,7 +219,10 @@ function buildNodeCard(n) {
           <span class="node-card-name">${esc(n.name || n.state?.name || 'Node ' + n.id)}</span>
           <span class="node-card-room">${esc(n.room || n.state?.room || '')}</span>
         </div>
-        <span class="status-dot ${statusClass}" title="${statusText}"></span>
+        <div class="node-card-header-right" onclick="event.stopPropagation()">
+          <button class="mini-power-btn ${n.powerOn ? 'on' : ''}" id="powerBtn-${n.id}" onclick="toggleNodePower(${n.id})" title="${n.powerOn ? t('power.off') : t('power.on')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M12 2v10"/><path d="M18.36 6.64A9 9 0 1 1 5.64 6.64"/></svg></button>
+          <span class="status-dot ${statusClass}" title="${statusText}"></span>
+        </div>
       </div>
       <div class="node-card-model">${esc(n.model || st.model || '')}</div>
       <div class="node-card-players">
@@ -231,7 +234,6 @@ function buildNodeCard(n) {
         <button class="mini-ctrl-btn" onclick="quickCmd(${n.id},1,'pause')" title="Pause P1">&#9208;</button>
         <button class="mini-ctrl-btn" onclick="quickCmd(${n.id},1,'stop')" title="Stop P1">&#9209;</button>
         <button class="mini-ctrl-btn" onclick="quickCmd(${n.id},1,'next')" title="Next P1">&#9197;</button>
-        <button class="mini-ctrl-btn mini-power-btn ${n.powerOn ? 'on' : ''}" id="powerBtn-${n.id}" onclick="toggleNodePower(${n.id})" title="${n.powerOn ? t('power.off') : t('power.on')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M12 2v10"/><path d="M18.36 6.64A9 9 0 1 1 5.64 6.64"/></svg></button>
       </div>
     </div>`;
 }

@@ -226,7 +226,14 @@ body {
   transition: background 0.15s;
 }
 .mini-ctrl-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
-.mini-power-btn { color: var(--red); border-color: var(--red); background: var(--red-dim); }
+.node-card-header-right { display: flex; align-items: center; gap: 8px; }
+.mini-power-btn {
+  width: 28px; height: 24px; border-radius: 5px; border: 1px solid var(--red);
+  background: var(--red-dim); color: var(--red);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s; padding: 0;
+}
+.mini-power-btn:hover { opacity: 0.8; }
 .mini-power-btn.on { color: var(--green); border-color: var(--green); background: var(--green-dim); }
 
 /* ── Node Detail ── */
