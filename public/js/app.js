@@ -231,7 +231,7 @@ function buildNodeCard(n) {
         <button class="mini-ctrl-btn" onclick="quickCmd(${n.id},1,'pause')" title="Pause P1">&#9208;</button>
         <button class="mini-ctrl-btn" onclick="quickCmd(${n.id},1,'stop')" title="Stop P1">&#9209;</button>
         <button class="mini-ctrl-btn" onclick="quickCmd(${n.id},1,'next')" title="Next P1">&#9197;</button>
-        <button class="mini-ctrl-btn mini-power-btn ${n.powerOn ? 'on' : ''}" id="powerBtn-${n.id}" onclick="toggleNodePower(${n.id})" title="${n.powerOn ? t('power.off') : t('power.on')}">&#9211;</button>
+        <button class="mini-ctrl-btn mini-power-btn ${n.powerOn ? 'on' : ''}" id="powerBtn-${n.id}" onclick="toggleNodePower(${n.id})" title="${n.powerOn ? t('power.off') : t('power.on')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M12 2v10"/><path d="M18.36 6.64A9 9 0 1 1 5.64 6.64"/></svg></button>
       </div>
     </div>`;
 }
