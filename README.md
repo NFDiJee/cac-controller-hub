@@ -43,7 +43,7 @@ Each node runs the standalone [CAC Controller](https://github.com/NFDiJee/cac-co
 - **Playlists** — View and start playlists on any node
 - **Scanner** — Start/abort CD scans remotely with live progress
 - **Statistics** — Play statistics per node with top tracks (with covers), top CDs, top artists, genre distribution, and activity charts
-- **Backup / Restore** — Export and import full node database backups via the Hub
+- **Backup / Restore** — Export and import full node database backups (JSON) and cover images (ZIP) via the Hub
 - **Direct link** to each node's full web interface for advanced features
 
 ### Management
@@ -114,8 +114,10 @@ Then add the node in the Hub under **Settings > Add Node**:
 |--------|----------|-------------|
 | `ALL` | `/api/nodes/:id/proxy/*` | Proxy any API call to a node |
 | `GET` | `/api/nodes/:id/cover/*` | Proxy cover images from a node |
+| `GET` | `/api/nodes/:id/proxy/backup/covers` | Download cover images ZIP from a node |
+| `POST` | `/api/nodes/:id/proxy/backup/covers` | Upload cover images ZIP to a node |
 
-The proxy automatically adds the stored API key to forwarded requests. Any endpoint available on the node can be called through the proxy — player control, library CRUD, playlists, scanner, settings, MusicBrainz, and more.
+The proxy automatically adds the stored API key to forwarded requests. Any endpoint available on the node can be called through the proxy — player control, library CRUD, playlists, scanner, settings, MusicBrainz, and more. Binary content (cover images, ZIP archives) is proxied via dedicated routes.
 
 ### Hub Settings
 

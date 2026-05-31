@@ -151,7 +151,8 @@ Core module for communication with all nodes:
 
 **Proxy Function:**
 - `proxyRequest(nodeId, method, path, body)` — forwards any API call to the node
-- `proxyBinary(nodeId, path)` — forwards binary content (cover images)
+- `proxyBinary(nodeId, path)` — forwards binary content (cover images, ZIP archives)
+- `proxyBinaryPost(nodeId, path, buffer, contentType)` — forwards binary POST requests (e.g., ZIP upload)
 - Automatically adds the `X-API-Key` header
 
 **Events:**
@@ -171,6 +172,8 @@ Core module for communication with all nodes:
 **Proxy Endpoints:**
 - `ALL /api/nodes/:id/proxy/{*path}` — Forwards any API call to the node
 - `GET /api/nodes/:id/cover/{*path}` — Forwards cover images
+- `GET /api/nodes/:id/proxy/backup/covers` — Download cover ZIP from node (dedicated binary route)
+- `POST /api/nodes/:id/proxy/backup/covers` — Upload cover ZIP to node (dedicated binary route)
 
 The proxy is transparent: the Hub client calls e.g. `/api/nodes/1/proxy/library`, the Hub forwards this as `GET http://node:3000/api/library` with the API key.
 
@@ -235,7 +238,7 @@ Full control of a selected node with four sub-tabs:
 - **Manage nodes**: List of all nodes with status, delete button
 - **Add node**: Enter URL, API key, name, room; connection test; auto-fill of name/room/model
 - **Hub settings**: Name, port, language
-- **Backup**: Export and import full node database as JSON (requires a selected node)
+- **Backup**: Export and import full node database as JSON and cover images as ZIP (requires a selected node)
 
 ### 3.4 Internationalization
 
@@ -361,6 +364,8 @@ Write-Ahead Logging for better performance with concurrent reads and writes.
 |--------|----------|-------------|
 | `ALL` | `/api/nodes/:id/proxy/*` | Forward any API call to node |
 | `GET` | `/api/nodes/:id/cover/*` | Load cover image from node |
+| `GET` | `/api/nodes/:id/proxy/backup/covers` | Download cover ZIP from node |
+| `POST` | `/api/nodes/:id/proxy/backup/covers` | Upload cover ZIP to node |
 
 Examples:
 - `GET /api/nodes/1/proxy/library` → `GET http://node:3000/api/library`

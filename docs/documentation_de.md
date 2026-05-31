@@ -151,7 +151,8 @@ Zentrales Modul fuer die Kommunikation mit allen Nodes:
 
 **Proxy-Funktion:**
 - `proxyRequest(nodeId, method, path, body)` — leitet beliebige API-Aufrufe an den Node weiter
-- `proxyBinary(nodeId, path)` — leitet binaere Inhalte (Cover-Bilder) weiter
+- `proxyBinary(nodeId, path)` — leitet binaere Inhalte (Cover-Bilder, ZIP-Archive) weiter
+- `proxyBinaryPost(nodeId, path, buffer, contentType)` — leitet binaere POST-Anfragen weiter (z.B. ZIP-Upload)
 - Fuegt automatisch den `X-API-Key`-Header hinzu
 
 **Events:**
@@ -171,6 +172,8 @@ Zentrales Modul fuer die Kommunikation mit allen Nodes:
 **Proxy-Endpunkte:**
 - `ALL /api/nodes/:id/proxy/{*path}` — Leitet jeden API-Aufruf an den Node weiter
 - `GET /api/nodes/:id/cover/{*path}` — Leitet Cover-Bilder weiter
+- `GET /api/nodes/:id/proxy/backup/covers` — Cover-ZIP vom Node herunterladen (dedizierte binaere Route)
+- `POST /api/nodes/:id/proxy/backup/covers` — Cover-ZIP zum Node hochladen (dedizierte binaere Route)
 
 Der Proxy ist transparent: Der Hub-Client ruft z.B. `/api/nodes/1/proxy/library` auf, der Hub leitet dies als `GET http://node:3000/api/library` mit API-Key weiter.
 
@@ -235,7 +238,7 @@ Vollstaendige Steuerung eines ausgewaehlten Nodes mit vier Sub-Tabs:
 - **Nodes verwalten**: Liste aller Nodes mit Status, Loeschen-Button
 - **Node hinzufuegen**: URL, API-Key, Name, Raum eingeben; Verbindungstest; Auto-Fill von Name/Raum/Modell
 - **Hub-Einstellungen**: Name, Port, Sprache
-- **Backup**: Export und Import der vollstaendigen Node-Datenbank als JSON (erfordert ausgewaehlten Node)
+- **Backup**: Export und Import der vollstaendigen Node-Datenbank als JSON sowie Cover-Bilder als ZIP (erfordert ausgewaehlten Node)
 
 ### 3.4 Internationalisierung
 
@@ -361,6 +364,8 @@ Write-Ahead Logging fuer bessere Performance bei gleichzeitigem Lesen und Schrei
 |---------|----------|--------------|
 | `ALL` | `/api/nodes/:id/proxy/*` | Beliebigen API-Aufruf an Node weiterleiten |
 | `GET` | `/api/nodes/:id/cover/*` | Cover-Bild von Node laden |
+| `GET` | `/api/nodes/:id/proxy/backup/covers` | Cover-ZIP vom Node herunterladen |
+| `POST` | `/api/nodes/:id/proxy/backup/covers` | Cover-ZIP zum Node hochladen |
 
 Beispiele:
 - `GET /api/nodes/1/proxy/library` → `GET http://node:3000/api/library`
