@@ -117,6 +117,7 @@ function handleWsMessage(msg) {
       }
       renderDashboard();
       preloadAllLibraries();
+      preloadAllPowerStatus();
       break;
 
     case 'nodeOnline':
@@ -125,6 +126,7 @@ function handleWsMessage(msg) {
         if (msg.state) nodes[msg.nodeId].state = msg.state;
       }
       renderDashboard();
+      checkNodePower(msg.nodeId);
       if (selectedNodeId === msg.nodeId) updatePlayerUI();
       break;
 
@@ -229,6 +231,7 @@ function buildNodeCard(n) {
         <button class="mini-ctrl-btn" onclick="quickCmd(${n.id},1,'pause')" title="Pause P1">&#9208;</button>
         <button class="mini-ctrl-btn" onclick="quickCmd(${n.id},1,'stop')" title="Stop P1">&#9209;</button>
         <button class="mini-ctrl-btn" onclick="quickCmd(${n.id},1,'next')" title="Next P1">&#9197;</button>
+        <button class="mini-ctrl-btn mini-power-btn ${n.powerOn ? 'on' : ''}" id="powerBtn-${n.id}" onclick="toggleNodePower(${n.id})" title="${n.powerOn ? t('power.off') : t('power.on')}">&#9211;</button>
       </div>
     </div>`;
 }
@@ -755,6 +758,48 @@ async function quickCmd(nodeId, playerId, action) {
   try {
     await fetch(`/api/nodes/${nodeId}/proxy/player/${playerId}/${action}`, { method: 'POST' });
   } catch {}
+}
+
+// ── Power (GPIO Relay) ──
+
+async function toggleNodePower(nodeId) {
+  const node = nodes[nodeId];
+  if (!node) return;
+  const endpoint = node.powerOn ? 'power/off' : 'power/on';
+  try {
+    const resp = await fetch(`/api/nodes/${nodeId}/proxy/${endpoint}`, { method: 'POST' });
+    const result = await resp.json();
+    if (result.ok !== undefined) {
+      node.powerOn = result.on;
+      const btn = document.getElementById('powerBtn-' + nodeId);
+      if (btn) {
+        btn.classList.toggle('on', node.powerOn);
+        btn.title = node.powerOn ? t('power.off') : t('power.on');
+      }
+    }
+  } catch {}
+}
+
+async function checkNodePower(nodeId) {
+  try {
+    const resp = await fetch(`/api/nodes/${nodeId}/proxy/power/status`);
+    const status = await resp.json();
+    if (nodes[nodeId]) {
+      nodes[nodeId].powerOn = status.configured && status.on;
+      nodes[nodeId].powerConfigured = status.configured;
+      const btn = document.getElementById('powerBtn-' + nodeId);
+      if (btn) {
+        btn.classList.toggle('on', nodes[nodeId].powerOn);
+        btn.style.display = status.configured ? '' : 'none';
+      }
+    }
+  } catch {}
+}
+
+async function preloadAllPowerStatus() {
+  for (const n of Object.values(nodes)) {
+    if (n.connected) checkNodePower(n.id);
+  }
 }
 
 // ── Play Modes ──
@@ -1937,6 +1982,13 @@ function openEditNodeModal(nodeId) {
   document.getElementById('editNodeApiKey').value = '';
   document.getElementById('editNodeApiKey').placeholder = node.api_key ? '••••••••' : '';
   document.getElementById('editNodeRoom').value = node.room || '';
+  document.getElementById('editNodeGpioPin').value = '';
+  // Load current GPIO pin from node settings
+  if (node.connected) {
+    fetch(`/api/nodes/${nodeId}/proxy/settings`).then(r => r.json()).then(s => {
+      document.getElementById('editNodeGpioPin').value = s.gpio_relay_pin || '';
+    }).catch(() => {});
+  }
   document.getElementById('editNodeModal').style.display = 'flex';
 }
 
@@ -1965,9 +2017,21 @@ async function saveNodeEdit() {
     if (nodes[nodeId]) {
       nodes[nodeId] = { ...nodes[nodeId], ...updated };
     }
+    // Save GPIO pin to node settings via proxy
+    const gpioPin = document.getElementById('editNodeGpioPin').value.trim();
+    if (nodes[nodeId]?.connected) {
+      try {
+        await fetch(`/api/nodes/${nodeId}/proxy/settings`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gpio_relay_pin: gpioPin }),
+        });
+      } catch {}
+    }
     closeEditNodeModal();
     renderNodeList();
     renderDashboard();
+    checkNodePower(nodeId);
   } catch {}
 }
 

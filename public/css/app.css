@@ -226,6 +226,7 @@ body {
   transition: background 0.15s;
 }
 .mini-ctrl-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
+.mini-power-btn.on { color: var(--green); border-color: var(--green); background: var(--green-dim); }
 
 /* ── Node Detail ── */
 
