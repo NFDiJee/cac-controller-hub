@@ -2091,6 +2091,55 @@ async function importNodeBackup(fileInput) {
   fileInput.value = '';
 }
 
+async function exportNodeCovers() {
+  if (!selectedNodeId) {
+    showToast(t('backup.selectNode'), 'error');
+    return;
+  }
+  try {
+    const resp = await fetch(`/api/nodes/${selectedNodeId}/proxy/backup/covers`);
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ error: resp.statusText }));
+      showToast(err.error || t('backup.coversNone'), 'error');
+      return;
+    }
+    const blob = await resp.blob();
+    const node = nodes[selectedNodeId];
+    const name = (node?.name || 'node').replace(/\s+/g, '_');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cac-covers-${name}-${new Date().toISOString().slice(0, 10)}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(t('backup.coversExportDone'));
+  } catch (err) { showToast(t('backup.importError') + ': ' + err.message, 'error'); }
+}
+
+async function importNodeCovers(fileInput) {
+  const file = fileInput.files[0];
+  if (!file) return;
+  if (!selectedNodeId) {
+    showToast(t('backup.selectNode'), 'error');
+    fileInput.value = '';
+    return;
+  }
+  if (!confirm(t('backup.coversImportConfirm'))) { fileInput.value = ''; return; }
+  try {
+    const resp = await fetch(`/api/nodes/${selectedNodeId}/proxy/backup/covers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/zip' },
+      body: file
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error);
+    showToast(t('backup.coversImportDone', data.imported));
+  } catch (err) {
+    showToast(t('backup.importError') + ': ' + err.message, 'error');
+  }
+  fileInput.value = '';
+}
+
 async function proxyGet(path) {
   const resp = await fetch(`/api/nodes/${selectedNodeId}/proxy/${path}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);

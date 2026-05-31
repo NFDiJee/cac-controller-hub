@@ -247,12 +247,35 @@ export class NodeManager extends EventEmitter {
     if (!node) throw new Error('Node not found');
 
     const url = `${node.url}/${path}`;
-    const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    const opts = { signal: AbortSignal.timeout(30000) };
+    if (node.api_key) {
+      opts.headers = { 'X-API-Key': node.api_key };
+    }
+    const resp = await fetch(url, opts);
     if (!resp.ok) return null;
 
     return {
       contentType: resp.headers.get('content-type'),
+      contentDisposition: resp.headers.get('content-disposition'),
       buffer: Buffer.from(await resp.arrayBuffer()),
     };
+  }
+
+  // Proxy binary POST (e.g. ZIP upload)
+  async proxyBinaryPost(nodeId, path, buffer, contentType) {
+    const node = db.getNode(nodeId);
+    if (!node) throw new Error('Node not found');
+
+    const url = `${node.url}/${path}`;
+    const headers = { 'Content-Type': contentType };
+    if (node.api_key) headers['X-API-Key'] = node.api_key;
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: buffer,
+      signal: AbortSignal.timeout(30000),
+    });
+    return { status: resp.status, data: await resp.json() };
   }
 }

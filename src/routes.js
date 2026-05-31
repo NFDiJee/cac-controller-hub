@@ -116,6 +116,40 @@ export function createRoutes(nodeManager) {
     }
   });
 
+  // ── Proxy cover backup (ZIP) from/to Nodes ──
+
+  router.get('/api/nodes/:id/proxy/backup/covers', async (req, res) => {
+    const nodeId = parseInt(req.params.id);
+    try {
+      const result = await nodeManager.proxyBinary(nodeId, 'api/backup/covers');
+      if (!result) return res.status(404).json({ error: 'No covers found' });
+      res.set('Content-Type', result.contentType);
+      res.set('Content-Disposition', result.contentDisposition || 'attachment; filename="cac-covers.zip"');
+      res.send(result.buffer);
+    } catch (err) {
+      res.status(502).json({ error: `Proxy error: ${err.message}` });
+    }
+  });
+
+  router.post('/api/nodes/:id/proxy/backup/covers', async (req, res) => {
+    const nodeId = parseInt(req.params.id);
+    try {
+      const chunks = [];
+      req.on('data', chunk => chunks.push(chunk));
+      req.on('end', async () => {
+        try {
+          const buffer = Buffer.concat(chunks);
+          const result = await nodeManager.proxyBinaryPost(nodeId, 'api/backup/covers', buffer, 'application/zip');
+          res.status(result.status).json(result.data);
+        } catch (err) {
+          res.status(502).json({ error: `Proxy error: ${err.message}` });
+        }
+      });
+    } catch (err) {
+      res.status(502).json({ error: `Proxy error: ${err.message}` });
+    }
+  });
+
   // ── Hub Settings ──
 
   router.get('/api/settings', (req, res) => {
