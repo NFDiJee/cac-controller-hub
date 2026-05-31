@@ -276,14 +276,24 @@ Bevor ein Node im Hub registriert werden kann, muss auf dem Node ein API-Key vor
    - Bei Fehler: URL und Key pruefen, Netzwerkverbindung testen
 5. **Hinzufuegen** klicken
 
-### 8.3 Verbindung pruefen
+### 8.3 GPIO-Pin konfigurieren (optional)
+
+Falls der Node einen Relais-Anschluss fuer die Stromsteuerung des CAC hat:
+
+1. Im Hub unter **Einstellungen** den Node-Eintrag finden und auf **Bearbeiten** (Stift-Symbol) klicken
+2. Im Feld **GPIO-Pin (Relais)** den BCM-Pin eingeben (z.B. `17`)
+3. **Speichern** klicken — der Pin wird automatisch in die Node-Einstellungen geschrieben
+4. Auf dem Dashboard erscheint ein Power-Button neben dem Status-Punkt des Nodes
+
+### 8.4 Verbindung pruefen
 
 Nach dem Hinzufuegen:
 - Der Node sollte auf dem Dashboard als **Online** (gruener Punkt) erscheinen
 - Die Player-Status-Karten sollten den aktuellen Zustand des Nodes anzeigen
 - Quick-Controls (Play, Pause, Stop, Next) sollten funktionieren
+- Falls GPIO konfiguriert: Der Power-Button im Karten-Header sollte den Relais-Status anzeigen (rot = AUS, gruen = EIN)
 
-### 8.4 Verbindung per Kommandozeile testen
+### 8.5 Verbindung per Kommandozeile testen
 
 Falls die Hub-UI nicht funktioniert, kann die Verbindung manuell getestet werden:
 

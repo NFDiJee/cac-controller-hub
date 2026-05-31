@@ -52,6 +52,7 @@ Im Browser oeffnen: `http://<PI_IP>:4000`
 3. **API-Key**: Der im Node konfigurierte API-Key
 4. **Verbindung testen** — Name, Raum und Modell werden automatisch uebernommen
 5. **Hinzufuegen** klicken
+6. Optional: Node bearbeiten (Stift-Symbol) und **GPIO-Pin** fuer Relais-Steuerung eintragen (z.B. `17`)
 
 ## Schritt 5: Systemd-Service einrichten
 

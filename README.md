@@ -34,6 +34,7 @@ Each node runs the standalone [CAC Controller](https://github.com/NFDiJee/cac-co
 ### Dashboard
 - **Live node status cards** with real-time player state, disc, track, and mode for all connected nodes
 - **Quick controls** — Play, Pause, Stop, Next directly from the dashboard
+- **Power control** — On/Off button per node (GPIO relay) in the card header, configurable per node
 - **Connection monitoring** with automatic reconnect and health checks
 
 ### Node Control
@@ -49,6 +50,7 @@ Each node runs the standalone [CAC Controller](https://github.com/NFDiJee/cac-co
 ### Management
 - **Add/remove nodes** with URL and API key
 - **Test connection** before adding a node (auto-fills name, room, model)
+- **GPIO pin configuration** per node in the edit modal (proxied to node settings)
 - **Hub settings** — Name, port, language
 - **Bilingual UI** — German and English
 

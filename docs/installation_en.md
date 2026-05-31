@@ -276,14 +276,24 @@ Before a node can be registered in the Hub, it must have an API key:
    - On failure: Check URL and key, test network connectivity
 5. Click **Add**
 
-### 8.3 Verify Connection
+### 8.3 Configure GPIO Pin (optional)
+
+If the node has a relay connection for powering the CAC unit:
+
+1. In the Hub under **Settings**, find the node entry and click **Edit** (pencil icon)
+2. Enter the BCM pin number in the **GPIO Pin (Relay)** field (e.g., `17`)
+3. Click **Save** — the pin is automatically written to the node's settings
+4. A power button appears in the node card header on the dashboard
+
+### 8.4 Verify Connection
 
 After adding:
 - The node should appear on the dashboard as **Online** (green dot)
 - Player status cards should show the current state of the node
 - Quick controls (Play, Pause, Stop, Next) should work
+- If GPIO configured: The power button in the card header should show relay status (red = OFF, green = ON)
 
-### 8.4 Test Connection via Command Line
+### 8.5 Test Connection via Command Line
 
 If the Hub UI doesn't work, test the connection manually:
 

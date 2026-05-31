@@ -196,6 +196,7 @@ The dashboard displays all configured nodes as cards in a responsive grid:
 - **Status indicator**: Green dot = online, red dot = offline
 - **Mini player**: For each node, both players show mode, disc, and track
 - **Quick controls**: Play, Pause, Stop, and Next directly on the dashboard card
+- **Power button**: On/Off button in the card header next to the status dot (only visible when GPIO is configured on the node). Red = OFF, green = ON
 - **Click**: Opens the detail view for that node
 
 ### 3.2 Node Detail View
@@ -236,6 +237,7 @@ Full control of a selected node with four sub-tabs:
 ### 3.3 Settings
 
 - **Manage nodes**: List of all nodes with status, delete button
+- **Edit node**: Configure name, URL, API key, room, and GPIO pin (relay). The GPIO pin is written to the node's settings via proxy
 - **Add node**: Enter URL, API key, name, room; connection test; auto-fill of name/room/model
 - **Hub settings**: Name, port, language
 - **Backup**: Export and import full node database as JSON and cover images as ZIP (requires a selected node)

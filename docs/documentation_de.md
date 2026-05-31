@@ -196,6 +196,7 @@ Das Dashboard zeigt alle konfigurierten Nodes als Karten in einem responsiven Gr
 - **Statusanzeige**: Gruener Punkt = online, roter Punkt = offline
 - **Mini-Player**: Fuer jeden Node werden beide Player mit Modus, Disc und Track angezeigt
 - **Quick-Controls**: Play, Pause, Stop und Next direkt auf der Dashboard-Karte
+- **Power-Button**: On/Off-Button im Karten-Header neben dem Status-Punkt (nur sichtbar wenn GPIO auf dem Node konfiguriert ist). Rot = AUS, Gruen = EIN
 - **Klick**: Oeffnet die Detail-Ansicht des Nodes
 
 ### 3.2 Node-Detail-Ansicht
@@ -236,6 +237,7 @@ Vollstaendige Steuerung eines ausgewaehlten Nodes mit vier Sub-Tabs:
 ### 3.3 Einstellungen
 
 - **Nodes verwalten**: Liste aller Nodes mit Status, Loeschen-Button
+- **Node bearbeiten**: Name, URL, API-Key, Raum und GPIO-Pin (Relais) konfigurieren. Der GPIO-Pin wird per Proxy in die Node-Einstellungen geschrieben
 - **Node hinzufuegen**: URL, API-Key, Name, Raum eingeben; Verbindungstest; Auto-Fill von Name/Raum/Modell
 - **Hub-Einstellungen**: Name, Port, Sprache
 - **Backup**: Export und Import der vollstaendigen Node-Datenbank als JSON sowie Cover-Bilder als ZIP (erfordert ausgewaehlten Node)
