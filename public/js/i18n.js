@@ -170,10 +170,6 @@ const translations = {
     'settings.cancel': 'Abbrechen',
     'settings.saved': 'Gespeichert!',
     'settings.deleteConfirm': 'Node wirklich loeschen?',
-    'settings.gpioPin': 'GPIO-Pin (Relais)',
-    'settings.gpioHint': 'GPIO-Pin fuer Relais. Leer = deaktiviert.',
-    'power.on': 'CAC einschalten',
-    'power.off': 'CAC ausschalten',
 
     'test.success': 'Verbindung erfolgreich!',
     'test.failed': 'Verbindung fehlgeschlagen:',
@@ -352,10 +348,6 @@ const translations = {
     'settings.cancel': 'Cancel',
     'settings.saved': 'Saved!',
     'settings.deleteConfirm': 'Really delete this node?',
-    'settings.gpioPin': 'GPIO Pin (Relay)',
-    'settings.gpioHint': 'GPIO pin for relay. Empty = disabled.',
-    'power.on': 'Power on CAC',
-    'power.off': 'Power off CAC',
 
     'test.success': 'Connection successful!',
     'test.failed': 'Connection failed:',

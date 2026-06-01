@@ -68,6 +68,16 @@ Each node runs the standalone [CAC Controller](https://github.com/NFDiJee/cac-co
 - **Build tools** for native SQLite module: `build-essential`, `python3`
 - One or more [CAC Controller](https://github.com/NFDiJee/cac-controller) nodes configured with API keys
 
+## Node Hardware
+
+The Hub connects to CAC Controller nodes over the network -- it does not handle serial communication directly. Each node runs on a Raspberry Pi connected to a Pioneer CAC unit via serial. Key hardware notes:
+
+- **DIP Switch**: The CAC-V3000 requires DIP switch 3 = ON for 9600 baud serial communication.
+- **Internal mounting**: Nodes can run on a Raspberry Pi Zero W mounted inside the CAC chassis, using an HLK-PM01 AC-DC module for power, direct TTL serial at the RSIF board input, a voltage divider for level shifting, a relay for power control, and USB WiFi (TP-Link TL-WN722N) with an external antenna (the metal chassis blocks internal WiFi).
+- The Hub connects to internally-mounted nodes the same way as any other node -- via the network.
+
+For full hardware details, see the [CAC Controller](https://github.com/NFDiJee/cac-controller) documentation.
+
 ## Quick Start
 
 ```bash

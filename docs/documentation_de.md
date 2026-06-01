@@ -50,6 +50,17 @@ Der CAC Hub ist ein zentrales Dashboard fuer die Verwaltung mehrerer Pioneer CAC
 
 Jeder CAC Controller Node laeuft als eigenstaendige Anwendung auf einem Raspberry Pi und steuert genau einen Pioneer CD-Automatenwechsler. Der Hub ist **optional** — jeder Node funktioniert vollstaendig ohne Hub.
 
+### 1.1a Node-Hardware (Uebersicht)
+
+Die serielle Verbindung zwischen Node (RPi) und CAC-Wechsler kann auf zwei Arten hergestellt werden:
+
+- **Variante A: Externer USB-Seriell-Adapter** — Klassischer RS-232C-Anschluss ueber 15-pol. D-Sub
+- **Variante B: Interner Einbau (RPi Zero W)** — Direkter TTL-Anschluss am **RSIF-Board-Eingang** (Uebergabe vom MCDR-Board), beide Boards unter der **rechten Seitenabdeckung** (von vorne gesehen). Stromversorgung ueber HLK-PM01 (230V→5V), Relais an GPIO17 fuer Netzschalter-Steuerung, WLAN ueber **TP-Link TL-WN722N** mit SMA-Kabel auf externe Antenne (Metallgehaeuse = Faradayscher Kaefig)
+
+> **CAC-V3000 DIP-Schalter:** DIP-Schalter 3 muss auf **ON** stehen fuer 9600 Baud.
+
+Detaillierte Hardware-Dokumentation: siehe [CAC Controller Dokumentation](https://github.com/NFDiJee/cac-controller).
+
 ### 1.2 Hub als Aggregator
 
 Der Hub sammelt Zustandsinformationen von allen Nodes und leitet sie an die Hub-UI-Clients weiter. Er speichert keine CD-Daten oder Bibliotheken — diese verbleiben ausschliesslich auf den Nodes.

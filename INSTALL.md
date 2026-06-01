@@ -11,6 +11,15 @@ Der Hub kann auf demselben Raspberry Pi wie ein Node laufen, oder auf einem sepa
 - WLAN oder Ethernet-Verbindung
 - Mindestens ein konfigurierter [CAC Controller Node](https://github.com/NFDiJee/cac-controller) mit API-Key
 
+## Hinweis zur Node-Hardware
+
+Jeder CAC Controller Node verbindet sich per serieller Schnittstelle mit dem Pioneer-Wechsler. Fuer den Hub ist das nicht relevant (nur Netzwerk), aber fuer die Nodes gilt:
+
+- **DIP-Schalter**: Beim CAC-V3000 muss DIP-Schalter 3 = ON stehen (9600 Baud).
+- **Interne RPi-Integration**: Alternativ kann ein Raspberry Pi Zero W direkt im CAC-Gehaeuse montiert werden (HLK-PM01 Netzteil, TTL-Seriell am RSIF-Board-Eingang, Spannungsteiler fuer 5V→3.3V, Relais fuer Stromsteuerung, USB-WiFi mit externer Antenne). Details in der [CAC Controller Installationsanleitung](https://github.com/NFDiJee/cac-controller).
+
+---
+
 ## Schritt 1: Node.js installieren
 
 Falls noch nicht vorhanden:

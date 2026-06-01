@@ -93,6 +93,8 @@ Jeder Node funktioniert vollstaendig eigenstaendig. Der Hub ist rein additiv —
 - Mindestens ein konfigurierter [CAC Controller Node](https://github.com/NFDiJee/cac-controller)
 - Auf jedem Node muss ein **API-Key** generiert sein (siehe Abschnitt 8)
 
+> **Hinweis:** Nodes koennen mit einem externen USB-Seriell-Adapter oder intern im CAC-Gehaeuse verbaut werden (RPi Zero W mit TTL-Direktanschluss am RSIF-Board, HLK-PM01 Stromversorgung, WLAN ueber TP-Link TL-WN722N mit externer Antenne). Fuer den CAC-V3000 muss DIP-Schalter 3 auf **ON** stehen (9600 Baud). Details: [CAC Controller Installationsanleitung](https://github.com/NFDiJee/cac-controller).
+
 ---
 
 ## 3. Raspberry Pi vorbereiten

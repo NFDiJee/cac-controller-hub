@@ -50,6 +50,17 @@ The CAC Hub is a central dashboard for managing multiple Pioneer CAC CD autochan
 
 Each CAC Controller node runs as a standalone application on a Raspberry Pi, controlling exactly one Pioneer CD autochanger. The Hub is **optional** — every node works fully without it.
 
+### 1.1a Node Hardware (Overview)
+
+The serial connection between a node (RPi) and the CAC changer can be established in two ways:
+
+- **Option A: External USB-Serial Adapter** — Classic RS-232C connection via 15-pin D-Sub
+- **Option B: Internal Installation (RPi Zero W)** — Direct TTL connection at the **RSIF board input** (handoff from MCDR board), both boards under the **right side cover** (viewed from front). Power via HLK-PM01 (230V→5V), relay on GPIO17 for power switch control, WiFi via **TP-Link TL-WN722N** with SMA cable to external antenna (metal chassis = Faraday cage)
+
+> **CAC-V3000 DIP Switch:** DIP switch 3 must be set to **ON** for 9600 baud.
+
+For detailed hardware documentation, see the [CAC Controller documentation](https://github.com/NFDiJee/cac-controller).
+
 ### 1.2 Hub as Aggregator
 
 The Hub collects state information from all nodes and forwards it to Hub UI clients. It does not store CD data or libraries — those remain exclusively on the nodes.

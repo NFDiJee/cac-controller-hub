@@ -93,6 +93,27 @@ Every node works fully on its own. The Hub is purely additive — it aggregates 
 - At least one configured [CAC Controller Node](https://github.com/NFDiJee/cac-controller)
 - Each node must have an **API key** generated (see Section 8)
 
+### Node Hardware Note
+
+Each Node (CAC Controller instance) connects to a Pioneer CAC changer. There are two connection options:
+
+**Option A: External USB-RS232 Adapter** (simple)
+- USB-to-Serial adapter (FTDI, PL2303 or CH340) + RS-232C cable with 15-pin D-Sub connector
+- Port: `/dev/ttyUSB0`
+
+**Option B: Internal RPi Zero W Integration** (advanced)
+- Raspberry Pi Zero W installed inside the CAC-V3000 case
+- TTL serial signals tapped at the **RSIF board input** (handoff from MCDR board) -- both boards under the right side cover (viewed from front)
+- Voltage divider (1kOhm / 2kOhm) for 5V to 3.3V level shifting on RX line
+- Power: Hi-Link HLK-PM01 (230V AC to 5V DC) from AC inlet before power switch
+- Relay (JQC-3FF-S-Z, Active HIGH) on GPIO17 for power control
+- Network: Mini USB to USB-A female adapter + TP-Link TL-WN722N WiFi stick with SMA connector to external antenna, or USB Ethernet adapter
+- Port: `/dev/ttyAMA0`
+
+**DIP Switch**: On the CAC-V3000, DIP switch 3 must be set to ON for 9600 baud (behind front door).
+
+See the [CAC Controller documentation](https://github.com/NFDiJee/cac-controller) for detailed hardware setup instructions.
+
 ---
 
 ## 3. Preparing the Raspberry Pi
