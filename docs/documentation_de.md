@@ -50,16 +50,26 @@ Der CAC Hub ist ein zentrales Dashboard fuer die Verwaltung mehrerer Pioneer CAC
 
 Jeder CAC Controller Node laeuft als eigenstaendige Anwendung auf einem Raspberry Pi und steuert genau einen Pioneer CD-Automatenwechsler. Der Hub ist **optional** — jeder Node funktioniert vollstaendig ohne Hub.
 
-### 1.1a Node-Hardware (Uebersicht)
+### 1.1.1 Node-Hardware-Hinweis
 
-Die serielle Verbindung zwischen Node (RPi) und CAC-Wechsler kann auf zwei Arten hergestellt werden:
+Jeder Node (CAC Controller Instanz) wird mit einem Pioneer CAC Wechsler verbunden. Es gibt zwei Anschlussoptionen:
 
-- **Variante A: Externer USB-Seriell-Adapter** — Klassischer RS-232C-Anschluss ueber 15-pol. D-Sub
-- **Variante B: Interner Einbau (RPi Zero W)** — Direkter TTL-Anschluss am **RSIF-Board-Eingang** (Uebergabe vom MCDR-Board), beide Boards unter der **rechten Seitenabdeckung** (von vorne gesehen). Stromversorgung ueber HLK-PM01 (230V→5V), Relais an GPIO17 fuer Netzschalter-Steuerung, WLAN ueber **TP-Link TL-WN722N** mit SMA-Kabel auf externe Antenne (Metallgehaeuse = Faradayscher Kaefig)
+**Option A: Externer USB-RS232-Adapter** (einfach)
+- USB-zu-Seriell-Adapter (FTDI, PL2303 oder CH340) + RS-232C-Kabel mit 15-poligem D-Sub-Stecker
+- Port: `/dev/ttyUSB0`
 
-> **CAC-V3000 DIP-Schalter:** DIP-Schalter 3 muss auf **ON** stehen fuer 9600 Baud.
+**Option B: Interner RPi Zero W Einbau** (fortgeschritten)
+- Raspberry Pi Zero W im CAC-V3000-Gehaeuse eingebaut
+- TTL-Seriell-Signale am **RSIF-Board-Eingang** abgegriffen (Uebergabe vom MCDR-Board) -- beide Boards unter der rechten Seitenabdeckung (von vorne gesehen)
+- Spannungsteiler (1kOhm / 2kOhm) fuer 5V-nach-3,3V-Pegelanpassung auf der RX-Leitung
+- Stromversorgung: Hi-Link HLK-PM01 (230V AC nach 5V DC) vom Netzeingang vor dem Netzschalter
+- Relais (JQC-3FF-S-Z, Active HIGH) an GPIO17 fuer Stromsteuerung
+- Netzwerk: Mini-USB-auf-USB-A-Adapter + TP-Link TL-WN722N WLAN-Stick mit SMA-Anschluss fuer externe Antenne, oder USB-Ethernet-Adapter
+- Port: `/dev/ttyAMA0`
 
-Detaillierte Hardware-Dokumentation: siehe [CAC Controller Dokumentation](https://github.com/NFDiJee/cac-controller).
+**DIP-Schalter**: Am CAC-V3000 muss DIP-Schalter 3 auf ON stehen fuer 9600 Baud (hinter der Fronttuere).
+
+Siehe die [CAC Controller Dokumentation](https://github.com/NFDiJee/cac-controller) fuer detaillierte Hardware-Anleitungen.
 
 ### 1.2 Hub als Aggregator
 

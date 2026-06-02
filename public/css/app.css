@@ -162,6 +162,8 @@ body {
   border-radius: 6px;
   padding: 8px;
   font-size: 0.8rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .mini-player-top { display: flex; gap: 8px; align-items: flex-start; }

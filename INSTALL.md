@@ -11,14 +11,26 @@ Der Hub kann auf demselben Raspberry Pi wie ein Node laufen, oder auf einem sepa
 - WLAN oder Ethernet-Verbindung
 - Mindestens ein konfigurierter [CAC Controller Node](https://github.com/NFDiJee/cac-controller) mit API-Key
 
-## Hinweis zur Node-Hardware
+### Node-Hardware-Hinweis
 
-Jeder CAC Controller Node verbindet sich per serieller Schnittstelle mit dem Pioneer-Wechsler. Fuer den Hub ist das nicht relevant (nur Netzwerk), aber fuer die Nodes gilt:
+Jeder Node (CAC Controller Instanz) wird mit einem Pioneer CAC Wechsler verbunden. Es gibt zwei Anschlussoptionen:
 
-- **DIP-Schalter**: Beim CAC-V3000 muss DIP-Schalter 3 = ON stehen (9600 Baud).
-- **Interne RPi-Integration**: Alternativ kann ein Raspberry Pi Zero W direkt im CAC-Gehaeuse montiert werden (HLK-PM01 Netzteil, TTL-Seriell am RSIF-Board-Eingang, Spannungsteiler fuer 5V→3.3V, Relais fuer Stromsteuerung, USB-WiFi mit externer Antenne). Details in der [CAC Controller Installationsanleitung](https://github.com/NFDiJee/cac-controller).
+**Option A: Externer USB-RS232-Adapter** (einfach)
+- USB-zu-Seriell-Adapter (FTDI, PL2303 oder CH340) + RS-232C-Kabel mit 15-poligem D-Sub-Stecker
+- Port: `/dev/ttyUSB0`
 
----
+**Option B: Interner RPi Zero W Einbau** (fortgeschritten)
+- Raspberry Pi Zero W im CAC-V3000-Gehaeuse eingebaut
+- TTL-Seriell-Signale am **RSIF-Board-Eingang** abgegriffen (Uebergabe vom MCDR-Board) -- beide Boards unter der rechten Seitenabdeckung (von vorne gesehen)
+- Spannungsteiler (1kOhm / 2kOhm) fuer 5V-nach-3,3V-Pegelanpassung auf der RX-Leitung
+- Stromversorgung: Hi-Link HLK-PM01 (230V AC nach 5V DC) vom Netzeingang vor dem Netzschalter
+- Relais (JQC-3FF-S-Z, Active HIGH) an GPIO17 fuer Stromsteuerung
+- Netzwerk: Mini-USB-auf-USB-A-Adapter + TP-Link TL-WN722N WLAN-Stick mit SMA-Anschluss fuer externe Antenne, oder USB-Ethernet-Adapter
+- Port: `/dev/ttyAMA0`
+
+**DIP-Schalter**: Am CAC-V3000 muss DIP-Schalter 3 auf ON stehen fuer 9600 Baud (hinter der Fronttuere).
+
+Siehe die [CAC Controller Dokumentation](https://github.com/NFDiJee/cac-controller) fuer detaillierte Hardware-Anleitungen.
 
 ## Schritt 1: Node.js installieren
 
