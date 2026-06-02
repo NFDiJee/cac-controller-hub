@@ -390,6 +390,11 @@
         <label class="form-label" data-i18n="settings.nodeRoom">Raum</label>
         <input type="text" id="editNodeRoom" class="form-input">
       </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="settings.gpioPin">GPIO-Pin (Relais)</label>
+        <input type="number" id="editNodeGpioPin" class="form-input" min="0" max="27" style="width:100px" placeholder="z.B. 17">
+        <span style="font-size:0.7rem;color:var(--text-dim)" data-i18n="settings.gpioHint">GPIO-Pin fuer Relais. Leer = deaktiviert.</span>
+      </div>
       <div class="form-row">
         <button class="btn btn-accent" onclick="saveNodeEdit()" data-i18n="settings.save">Speichern</button>
         <button class="btn btn-dim" onclick="closeEditNodeModal()" data-i18n="settings.cancel">Abbrechen</button>

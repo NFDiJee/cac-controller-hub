@@ -117,6 +117,7 @@ function handleWsMessage(msg) {
       }
       renderDashboard();
       preloadAllLibraries();
+      preloadAllPowerStatus();
       break;
 
     case 'nodeOnline':
@@ -125,6 +126,7 @@ function handleWsMessage(msg) {
         if (msg.state) nodes[msg.nodeId].state = msg.state;
       }
       renderDashboard();
+      checkNodePower(msg.nodeId);
       if (selectedNodeId === msg.nodeId) updatePlayerUI();
       break;
 
@@ -217,7 +219,10 @@ function buildNodeCard(n) {
           <span class="node-card-name">${esc(n.name || n.state?.name || 'Node ' + n.id)}</span>
           <span class="node-card-room">${esc(n.room || n.state?.room || '')}</span>
         </div>
-        <span class="status-dot ${statusClass}" title="${statusText}"></span>
+        <div class="node-card-header-right" onclick="event.stopPropagation()">
+          <button class="mini-power-btn ${n.powerOn ? 'on' : ''}" id="powerBtn-${n.id}" onclick="toggleNodePower(${n.id})" title="${n.powerOn ? t('power.off') : t('power.on')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M12 2v10"/><path d="M18.36 6.64A9 9 0 1 1 5.64 6.64"/></svg></button>
+          <span class="status-dot ${statusClass}" title="${statusText}"></span>
+        </div>
       </div>
       <div class="node-card-model">${esc(n.model || st.model || '')}</div>
       <div class="node-card-players">
@@ -755,6 +760,48 @@ async function quickCmd(nodeId, playerId, action) {
   try {
     await fetch(`/api/nodes/${nodeId}/proxy/player/${playerId}/${action}`, { method: 'POST' });
   } catch {}
+}
+
+// ── Power (GPIO Relay) ──
+
+async function toggleNodePower(nodeId) {
+  const node = nodes[nodeId];
+  if (!node) return;
+  const endpoint = node.powerOn ? 'power/off' : 'power/on';
+  try {
+    const resp = await fetch(`/api/nodes/${nodeId}/proxy/${endpoint}`, { method: 'POST' });
+    const result = await resp.json();
+    if (result.ok !== undefined) {
+      node.powerOn = result.on;
+      const btn = document.getElementById('powerBtn-' + nodeId);
+      if (btn) {
+        btn.classList.toggle('on', node.powerOn);
+        btn.title = node.powerOn ? t('power.off') : t('power.on');
+      }
+    }
+  } catch {}
+}
+
+async function checkNodePower(nodeId) {
+  try {
+    const resp = await fetch(`/api/nodes/${nodeId}/proxy/power/status`);
+    const status = await resp.json();
+    if (nodes[nodeId]) {
+      nodes[nodeId].powerOn = status.configured && status.on;
+      nodes[nodeId].powerConfigured = status.configured;
+      const btn = document.getElementById('powerBtn-' + nodeId);
+      if (btn) {
+        btn.classList.toggle('on', nodes[nodeId].powerOn);
+        btn.style.display = status.configured ? '' : 'none';
+      }
+    }
+  } catch {}
+}
+
+async function preloadAllPowerStatus() {
+  for (const n of Object.values(nodes)) {
+    if (n.connected) checkNodePower(n.id);
+  }
 }
 
 // ── Play Modes ──
@@ -1937,6 +1984,13 @@ function openEditNodeModal(nodeId) {
   document.getElementById('editNodeApiKey').value = '';
   document.getElementById('editNodeApiKey').placeholder = node.api_key ? '••••••••' : '';
   document.getElementById('editNodeRoom').value = node.room || '';
+  document.getElementById('editNodeGpioPin').value = '';
+  // Load current GPIO pin from node settings
+  if (node.connected) {
+    fetch(`/api/nodes/${nodeId}/proxy/settings`).then(r => r.json()).then(s => {
+      document.getElementById('editNodeGpioPin').value = s.gpio_relay_pin || '';
+    }).catch(() => {});
+  }
   document.getElementById('editNodeModal').style.display = 'flex';
 }
 
@@ -1965,9 +2019,19 @@ async function saveNodeEdit() {
     if (nodes[nodeId]) {
       nodes[nodeId] = { ...nodes[nodeId], ...updated };
     }
+    // Save GPIO pin to node settings via proxy
+    const gpioPin = document.getElementById('editNodeGpioPin').value.trim();
+    try {
+      await fetch(`/api/nodes/${nodeId}/proxy/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gpio_relay_pin: gpioPin }),
+      });
+    } catch {}
     closeEditNodeModal();
     renderNodeList();
     renderDashboard();
+    checkNodePower(nodeId);
   } catch {}
 }
 
