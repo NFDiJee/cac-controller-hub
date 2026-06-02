@@ -376,6 +376,13 @@ function setLanguage(lang) {
     el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
   });
   document.querySelector('.lang-btn').textContent = currentLang === 'de' ? 'EN' : 'DE';
+  // Re-apply dynamic status text based on actual connection state
+  const wsEl = document.getElementById('wsStatus');
+  const wsTxt = document.getElementById('wsStatusText');
+  if (wsEl && wsTxt) {
+    const isConnected = wsEl.classList.contains('connected');
+    wsTxt.textContent = t(isConnected ? 'status.connected' : 'status.disconnected');
+  }
 }
 
 function toggleLanguage() {
